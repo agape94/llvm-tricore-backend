@@ -360,6 +360,13 @@ static std::string getLanaiTargetCPU(const ArgList &Args) {
   return "";
 }
 
+static std::string getTriCoreTargetCPU(const ArgList &Args) {
+  if (Arg *A = Args.getLastArg(options::OPT_mcpu_EQ)) {
+    return A->getValue();
+  }
+  return "";
+}
+
 /// Get the (LLVM) name of the WebAssembly cpu we are targeting.
 static StringRef getWebAssemblyTargetCPU(const ArgList &Args) {
   // If we have -mcpu=, use that.
@@ -463,6 +470,9 @@ std::string tools::getCPUName(const Driver &D, const ArgList &Args,
 
   case llvm::Triple::lanai:
     return getLanaiTargetCPU(Args);
+
+  case llvm::Triple::tricore:
+    return getTriCoreTargetCPU(Args);
 
   case llvm::Triple::systemz:
     return systemz::getSystemZTargetCPU(Args);

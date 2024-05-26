@@ -98,6 +98,7 @@ add_clang_library(clangCodeGen
   Targets/CSKY.cpp
   Targets/Hexagon.cpp
   Targets/Lanai.cpp
+  Targets/TriCore.cpp
   Targets/LoongArch.cpp
   Targets/M68k.cpp
   Targets/MSP430.cpp
