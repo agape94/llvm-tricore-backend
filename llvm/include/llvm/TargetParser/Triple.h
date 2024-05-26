@@ -101,6 +101,7 @@ public:
     kalimba,        // Kalimba: generic kalimba
     shave,          // SHAVE: Movidius vector VLIW processors
     lanai,          // Lanai: Lanai 32-bit
+    tricore,         // TriCore: TriCore 32-bit
     wasm32,         // WebAssembly with 32-bit pointers
     wasm64,         // WebAssembly with 64-bit pointers
     renderscript32, // 32-bit RenderScript
@@ -948,6 +949,11 @@ public:
   /// Tests whether the target is x86 (32- or 64-bit).
   bool isX86() const {
     return getArch() == Triple::x86 || getArch() == Triple::x86_64;
+  }
+
+  /// Tests whether the target is TriCore
+  bool isTriCore() const {
+    return getArch() == Triple::tricore;
   }
 
   /// Tests whether the target is VE

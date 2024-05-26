@@ -1121,7 +1121,6 @@ const EnumEntry<unsigned> ElfMachineType[] = {
   ENUM_ENT(EM_ALPHA,         "EM_ALPHA"),
   ENUM_ENT(EM_SH,            "Hitachi SH"),
   ENUM_ENT(EM_SPARCV9,       "Sparc v9"),
-  ENUM_ENT(EM_TRICORE,       "Siemens Tricore"),
   ENUM_ENT(EM_ARC,           "ARC"),
   ENUM_ENT(EM_H8_300,        "Hitachi H8/300"),
   ENUM_ENT(EM_H8_300H,       "Hitachi H8/300H"),

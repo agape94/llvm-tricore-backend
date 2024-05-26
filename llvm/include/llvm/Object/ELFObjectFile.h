@@ -1206,6 +1206,8 @@ StringRef ELFObjectFile<ELFT>::getFileFormatName() const {
       return "elf32-hexagon";
     case ELF::EM_LANAI:
       return "elf32-lanai";
+    case ELF::EM_TRICORE:
+      return "elf32-tricore";
     case ELF::EM_MIPS:
       return "elf32-mips";
     case ELF::EM_MSP430:
@@ -1283,6 +1285,8 @@ template <class ELFT> Triple::ArchType ELFObjectFile<ELFT>::getArch() const {
     return Triple::hexagon;
   case ELF::EM_LANAI:
     return Triple::lanai;
+  case ELF::EM_TRICORE:
+    return Triple::tricore;
   case ELF::EM_MIPS:
     switch (EF.getHeader().e_ident[ELF::EI_CLASS]) {
     case ELF::ELFCLASS32:

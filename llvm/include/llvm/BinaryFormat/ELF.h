@@ -157,7 +157,6 @@ enum {
   EM_ALPHA = 41,         // DEC Alpha
   EM_SH = 42,            // Hitachi SH
   EM_SPARCV9 = 43,       // SPARC V9
-  EM_TRICORE = 44,       // Siemens TriCore
   EM_ARC = 45,           // Argonaut RISC Core
   EM_H8_300 = 46,        // Hitachi H8/300
   EM_H8_300H = 47,       // Hitachi H8/300H
@@ -320,6 +319,7 @@ enum {
   EM_VE = 251,            // NEC SX-Aurora VE
   EM_CSKY = 252,          // C-SKY 32-bit processor
   EM_LOONGARCH = 258,     // LoongArch
+  EM_TRICORE = 300,        // TriCore 32-bit
 };
 
 // Object file classes.
@@ -663,6 +663,11 @@ enum {
 // ELF Relocation type for Lanai.
 enum {
 #include "ELFRelocs/Lanai.def"
+};
+
+// ELF Relocation type for TriCore.
+enum {
+#include "ELFRelocs/TriCore.def"
 };
 
 // RISCV Specific e_flags

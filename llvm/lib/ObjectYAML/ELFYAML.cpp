@@ -219,7 +219,6 @@ void ScalarEnumerationTraits<ELFYAML::ELF_EM>::enumeration(
   ECase(EM_ALPHA);
   ECase(EM_SH);
   ECase(EM_SPARCV9);
-  ECase(EM_TRICORE);
   ECase(EM_ARC);
   ECase(EM_H8_300);
   ECase(EM_H8_300H);
@@ -351,6 +350,7 @@ void ScalarEnumerationTraits<ELFYAML::ELF_EM>::enumeration(
   ECase(EM_AMDGPU);
   ECase(EM_RISCV);
   ECase(EM_LANAI);
+  ECase(EM_TRICORE);
   ECase(EM_BPF);
   ECase(EM_VE);
   ECase(EM_CSKY);
@@ -890,6 +890,9 @@ void ScalarEnumerationTraits<ELFYAML::ELF_REL>::enumeration(
     break;
   case ELF::EM_LANAI:
 #include "llvm/BinaryFormat/ELFRelocs/Lanai.def"
+    break;
+  case ELF::EM_TRICORE:
+#include "llvm/BinaryFormat/ELFRelocs/TriCore.def"
     break;
   case ELF::EM_AMDGPU:
 #include "llvm/BinaryFormat/ELFRelocs/AMDGPU.def"
