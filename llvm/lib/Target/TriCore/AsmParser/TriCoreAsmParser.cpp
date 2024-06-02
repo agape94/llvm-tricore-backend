@@ -244,7 +244,7 @@ public:
 
 bool TriCoreAsmParser::parseRegister(MCRegister &RegNum, SMLoc &StartLoc,
                                    SMLoc &EndLoc) {
-  return MatchRegisterName(Lexer.getTok().getIdentifier()) == TRICORE::R0;
+  return MatchRegisterName(Lexer.getTok().getIdentifier()) == TRICORE::D0;
 }
 
 OperandMatchResultTy TriCoreAsmParser::tryParseRegister(MCRegister &RegNum,

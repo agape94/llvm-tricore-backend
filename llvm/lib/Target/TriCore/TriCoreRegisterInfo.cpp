@@ -31,12 +31,12 @@
 
 using namespace llvm;
 
-TriCoreRegisterInfo::TriCoreRegisterInfo() : TriCoreGenRegisterInfo(TRICORE::R0) {}
+TriCoreRegisterInfo::TriCoreRegisterInfo() : TriCoreGenRegisterInfo(TRICORE::D0) {}
 
 const uint16_t *
 TriCoreRegisterInfo::getCalleeSavedRegs(const MachineFunction * /*MF*/) const {
   static const uint16_t CalleeSavedRegs[] = {
-    TRICORE::R4,
+    TRICORE::D4,
     0
   };
   return CalleeSavedRegs;
@@ -44,7 +44,7 @@ TriCoreRegisterInfo::getCalleeSavedRegs(const MachineFunction * /*MF*/) const {
 
 BitVector TriCoreRegisterInfo::getReservedRegs(const MachineFunction &MF) const {
   BitVector Reserved(getNumRegs());
-  Reserved.set(TRICORE::R8);
+  Reserved.set(TRICORE::D8);
   // Add more registers that should be reserved
   return Reserved;
 }
@@ -58,5 +58,5 @@ bool TriCoreRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
 
 Register
 TriCoreRegisterInfo::getFrameRegister(const MachineFunction & /*MF*/) const {
-  return TRICORE::R10;
+  return TRICORE::D10;
 }

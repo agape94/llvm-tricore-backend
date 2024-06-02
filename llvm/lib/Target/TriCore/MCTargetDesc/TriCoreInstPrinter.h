@@ -35,6 +35,18 @@ public:
                     const char *Modifier = nullptr);
   static const char *getRegisterName(MCRegister Reg);
   bool printAliasInstr(const MCInst *MI, uint64_t Address, raw_ostream &OS);
+
+  template <unsigned bits>
+    void printSExtImm(const MCInst *MI, unsigned OpNo, raw_ostream &O);
+  template <unsigned bits>
+  void printZExtImm(const MCInst *MI, int OpNo, raw_ostream &O);
+  void printPCRelImmOperand(const MCInst *MI, unsigned OpNo, raw_ostream &O);
+  void printPairAddrRegsOperand(const MCInst *MI, unsigned OpNo, raw_ostream &O);
+  void printAddrBO(const MCInst *MI, unsigned OpNum, raw_ostream &O);
+  void printAddrPreIncBO(const MCInst *MI, unsigned OpNum, raw_ostream &O);
+  void printAddrPostIncBO(const MCInst *MI, unsigned OpNum, raw_ostream &O);
+  void printAddrCircBO(const MCInst *MI, unsigned OpNum, raw_ostream &O);
+  void printAddrBitRevBO(const MCInst *MI, unsigned OpNum, raw_ostream &O);
 };
 
 } // end namespace llvm

@@ -64,7 +64,7 @@ static MCInstrInfo *createTriCoreMCInstrInfo() {
 
 static MCRegisterInfo *createTriCoreMCRegisterInfo(const Triple & /*TT*/) {
   MCRegisterInfo *X = new MCRegisterInfo();
-  InitTriCoreMCRegisterInfo(X, TRICORE::R0);
+  InitTriCoreMCRegisterInfo(X, TRICORE::D0);
   return X;
 }
 

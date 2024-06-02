@@ -75,7 +75,7 @@ const char *TriCoreTargetLowering::getTargetNodeName(unsigned Opcode) const
 {
   switch (Opcode)
   {
-  case TriCoreISD::RET   : return "TRICORE::RET";
+  case TRICOREISD::RET_FLAG   : return "TRICORE::RET_FLAG";
   default               : return NULL;
   }
 }
@@ -85,7 +85,7 @@ TriCoreTargetLowering::TriCoreTargetLowering(const TargetMachine &TM,
     : TargetLowering(TM) 
 {
   // Set up the register classes.
-  addRegisterClass(MVT::i32, &TRICORE::GPRRegClass);
+  // addRegisterClass(MVT::i32, &TRICORE::DataRegs);
 
   // Compute derived properties from the register classes
   TRI = STI.getRegisterInfo();

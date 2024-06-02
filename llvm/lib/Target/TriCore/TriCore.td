@@ -16,10 +16,9 @@ include "llvm/Target/Target.td"
 // Register File, Calling Conv, Instruction Descriptions
 //===----------------------------------------------------------------------===//
 
-include "TriCoreSchedule.td"
 include "TriCoreRegisterInfo.td"
-include "TriCoreCallingConv.td"
 include "TriCoreInstrInfo.td"
+include "TriCoreCallingConv.td"
 
 def TriCoreInstrInfo : InstrInfo;
 
@@ -27,7 +26,10 @@ def TriCoreInstrInfo : InstrInfo;
 // TriCore processors supported.
 //===----------------------------------------------------------------------===//
 
-def : ProcessorModel<"generic", TriCoreSchedModel, []>;
+class Proc<string Name, list<SubtargetFeature> Features>
+    : Processor<Name, NoItineraries, Features>;
+
+def : Proc<"generic", []>;
 
 def TriCoreInstPrinter : AsmWriter {
   string AsmWriterClassName  = "InstPrinter";

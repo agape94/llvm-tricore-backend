@@ -20,22 +20,37 @@
 #include "llvm/CodeGen/TargetLowering.h"
 
 namespace llvm {
-namespace TriCoreISD {
+namespace TRICOREISD {
 enum {
-  FIRST_NUMBER = ISD::BUILTIN_OP_END,
-
-  // Return with a glue operand. Operand 0 is the chain operand.
-  RET,
-
-  /// Wrapper - A wrapper node for TargetConstantPool, TargetExternalSymbol,
-  /// and TargetGlobalAddress.
-  Wrapper,
-
-  // CALL - These operations represent an abstract call instruction, which
-  // includes a bunch of information.
-  // CALL
+// Start the numbering where the builtin ops and target ops leave off.
+      FIRST_NUMBER = ISD::BUILTIN_OP_END,
+      RET_FLAG,
+      // This loads the symbol (e.g. global address) into a register.
+      LOAD_SYM,
+      // This loads a 32-bit immediate into a register.
+      MOVEi32,
+      CALL,
+      // TriCore has a different way of lowering branch conditions.
+      BR_CC,
+      // This loads the comparison type, as Tricore doesn't support all
+      // sorts of comparisons, some have to be created.
+      CMP,
+      // This load the addressing information
+      Wrapper,
+      // This loads the Shift instructions operands. Right and left shift
+      // depends on the signed-ness on the shift value. A negytive value is
+      // a right shift, and vice versa.
+      SH,
+      // Arithmetic Shift
+      SHA,
+      // Loads ternary operators
+      SELECT_CC,
+      LOGICCMP,
+      IMASK,
+      EXTR,
+      ABS
 };
-} // namespace TriCoreISD
+} // namespace TRICOREISD
 
 class TriCoreSubtarget;
 
