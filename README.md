@@ -1,39 +1,136 @@
-# The LLVM Compiler Infrastructure
+# LLVM Backend for the TriCore TC1.6 architecture
+> **WARNING:** The functionality of the compiler was NOT tested in a comprehensive way. Please check the assembly code before running it on your hardware! 
 
-Welcome to the LLVM project!
+> **Note:** The relevant code for this backend can be found in [this folder](llvm/lib/Target/TriCore/).
 
-This repository contains the source code for LLVM, a toolkit for the
-construction of highly optimized compilers, optimizers, and run-time
-environments.
+This project aims to provide an open source, LLVM-based compiler for the `TriCore TC1.x` architecture. At the moment, only a reduced set of instructions from the `TriCore EABI` are supported, more will be added in the future.
 
-The LLVM project has multiple components. The core of the project is
-itself called "LLVM". This contains all of the tools, libraries, and header
-files needed to process intermediate representations and convert them into
-object files. Tools include an assembler, disassembler, bitcode analyzer, and
-bitcode optimizer.
+## Build
+### Build command
+To start a `Release` build, simply run
+```
+$ inv b
+``` 
+in your command line. Depending on your hardware, it may take up to 1h.
 
-C-like languages use the [Clang](http://clang.llvm.org/) frontend. This
-component compiles C, C++, Objective-C, and Objective-C++ code into LLVM bitcode
--- and from there into object files, using LLVM.
+### Details
 
-Other components include:
-the [libc++ C++ standard library](https://libcxx.llvm.org),
-the [LLD linker](https://lld.llvm.org), and more.
+This project makes use of the excelent [invoke](https://www.pyinvoke.org/) module from Python. It allows the creation of custom scripts, called `tasks`, that can be run from anywhere within the directory where `tasks.py` exists (subdirectories as well). Invoke can be installed via Pip (`pip install invoke`).
 
-## Getting the Source Code and Building LLVM
+To get an overview of the available tasks, open the directory in the command line and run the following command:
+```
+$ invoke --list
+Available tasks:
 
-Consult the
-[Getting Started with LLVM](https://llvm.org/docs/GettingStarted.html#getting-the-source-code-and-building-llvm)
-page for information on building and running LLVM.
+  build-target (b)   Starts the build process for the target specified in the target_name parameter. If the target_name is not provided, the
+                     name of the target the environment was created for will be used.
+```
+>**Note**: `inv` works as well.
 
-For information on how to contribute to the LLVM project, please take a look at
-the [Contributing to LLVM](https://llvm.org/docs/Contributing.html) guide.
+For more information about Python `invoke`, please refer to the [official documentation](https://docs.pyinvoke.org/en/stable/).
 
-## Getting in touch
+To find more information about a specific task, you can run the following command: `inv --help [task_name]`. This command will print the usage instructions of the task, the task description, followed by detailed descriptions of all command line arguments.
 
-Join the [LLVM Discourse forums](https://discourse.llvm.org/), [Discord
-chat](https://discord.gg/xS7Z362), or #llvm IRC channel on
-[OFTC](https://oftc.net/).
+For instance, running `inv --help b`, you will get the following output:
+```
+inv --help b
+Usage: inv[oke] [--core-opts] b [--options] [other tasks here ...]
 
-The LLVM project has adopted a [code of conduct](https://llvm.org/docs/CodeOfConduct.html) for
-participants to all modes of communication within the project.
+Docstring:
+  Starts the build process for the target specified in the target_name parameter. If the target_name is not provided, `TriCore` will be used by default.
+  By default, the build type is set to Release. If you want to build the target in Debug mode, you can specify the build type as Debug.
+
+Options:
+  -a INT, --parallel-link-jobs=INT           Number of parallel link jobs. By default it is set to 2. WARNING: A high number of link jobs may cause your system to run out of memory and crash (Especially for Debug builds).
+  -b STRING, --build-type=STRING             Possible values: Debug, Release. Default value: Release
+  -c, --[no-]clang                           Whether to build clang or not. Default value: True
+  -e STRING, --experimental-targets=STRING   List of experimental targets to build, Strings separated by ';' (semicolon). Example: 'TriCore;RISCW;etc'. If not defined, the name of the target the environment was created for will be used.
+  -p STRING, --path=STRING                   Path to llvm source root. By default the current directory is considered
+  -u STRING, --upstream-targets=STRING       List of upstream targets to build, Strings separated by ';' (semicolon). By default it is None. Example: Lanai;ARM;RISCV;etc
+```
+To trigger a `Debug` build, simply run 
+
+```
+inv b -b Debug
+```
+
+## Generate assembly code
+
+If the build is successful, a new directory will be created inside the environment directory. This directory will be called `build_<target-name>`, and will contain all the binaries generated, including `llc`, which is the actual compiler we are interested in.
+
+As input, `llc` needs `LLVM IR` source code. Create a new file `main.ll` and place the following code inside.
+```
+; ModuleID = 'Example.c'
+source_filename = "/home/alex/temp/llvm-simple-test/example.c"
+target datalayout = "e-m:e-p:32:32-i64:64-n32-S128"
+target triple = "tricore"
+
+; Function Attrs: noinline nounwind optnone
+define dso_local i32 @main() #0 {
+  %1 = alloca i32, align 4
+  %2 = alloca i32, align 4
+  %3 = alloca i32, align 4
+  store i32 0, ptr %1, align 4
+  store i32 100, ptr %2, align 4
+  %4 = load i32, ptr %2, align 4
+  %5 = add nsw i32 %4, 300
+  store i32 %5, ptr %3, align 4
+  %6 = load i32, ptr %2, align 4
+  %7 = load i32, ptr %3, align 4
+  %8 = add nsw i32 %6, %7
+  ret i32 %8
+}
+```
+The equivalent C code for the `LLVM IR` code above is the following:
+```
+int main()
+{
+        int a;
+        a = 100;
+        int b = a + 300;
+        return a+b;
+}
+``` 
+
+In order to generate the assembly code for this program, `llc` can be run as follows:
+
+```
+$ ./build_tricore_<build_type>/bin/llc --mtriple=tricore /path/to/src.ll
+```
+
+Note: 
+  - The `--mtriple` flag tells `llc` for which target the code will be compiled. In our case it is `<target-name>`.
+  - The `.s` file containing the assembly code will be placed alongside the `.ll` file.
+
+The generated assembly code for the `LLVM IR` code above is the following:
+```
+        .text
+        .file   "variables.c"
+        .globl  main                            # -- Begin function main
+        .type   main,@function
+main:                                   # @main
+main$local:
+        .type   main$local,@function
+# %bb.0:
+        mov %d15, 0
+        st.w [%a14] -4, %d15
+        mov %d15, 100
+        st.w [%a14] -8, %d15
+        ld.w %d15, [%a14] -8
+        mov %d2, 300
+        add %d2, %d15
+        st.w [%a14] -12, %d2
+        ld.w %d15, [%a14] -8
+        ld.w %d2, [%a14] -12
+        add %d2, %d15
+        ret
+.Lfunc_end0:
+        .size   main, .Lfunc_end0-main
+        .size   main$local, .Lfunc_end0-main
+                                        # -- End function
+        .ident  "clang version 17.0.6"
+        .section        ".note.GNU-stack","",@progbits
+```
+
+## Binary code
+For now, the assembler is not implemented. Please use an existing assembler to generate the binary.

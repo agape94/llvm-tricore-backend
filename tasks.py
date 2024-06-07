@@ -33,10 +33,10 @@ def check_arguments(target_name, path, build_type):
              "build_type": "Possible values: Debug, Release. Default value: Release",
              "clang": "Whether to build clang or not. Default value: True",
              "upstream_targets": "List of upstream targets to build, Strings separated by ';' (semicolon). By default it is None. Example: Lanai;ARM;RISCV;etc",
-             "parallel_link_jobs": "Number of parallel link jobs. By default it is set to 2. Note: A high number of link jobs may cause your system to run out of memory and crash."})
+             "parallel_link_jobs": "Number of parallel link jobs. By default it is set to 2. WARNING: A high number of link jobs may cause your system to run out of memory and crash (Especially for Debug builds)."})
 def build_target(c, experimental_targets="", path=".", upstream_targets="", build_type="Release", clang=True, parallel_link_jobs=2):
   """
-    Starts the build process for the target specified in the target_name parameter. If the target_name is not provided, the name of the target the environment was created for will be used.
+    Starts the build process for the target specified in the target_name parameter. If the target_name is not provided, `TriCore` will be used by default.
     By default, the build type is set to Release. If you want to build the target in Debug mode, you can specify the build type as Debug.
   """
   if experimental_targets == "":
