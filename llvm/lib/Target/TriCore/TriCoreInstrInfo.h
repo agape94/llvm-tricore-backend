@@ -34,6 +34,8 @@ public:
   virtual const TriCoreRegisterInfo &getRegisterInfo() const {
     return RegisterInfo;
   }
+  void splitRegs(unsigned Reg, unsigned &LoReg, unsigned &HiReg) const;
+  bool expandPostRAPseudo(MachineInstr &MI) const override;
 };
 
 } // namespace llvm

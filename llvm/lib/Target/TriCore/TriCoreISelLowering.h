@@ -21,8 +21,8 @@
 
 namespace llvm {
 namespace TRICOREISD {
-enum {
-// Start the numbering where the builtin ops and target ops leave off.
+  enum NodeType : unsigned {
+  // Start the numbering where the builtin ops and target ops leave off.
       FIRST_NUMBER = ISD::BUILTIN_OP_END,
       RET_FLAG,
       // This loads the symbol (e.g. global address) into a register.
@@ -49,25 +49,33 @@ enum {
       IMASK,
       EXTR,
       ABS
-};
+  };
 } // namespace TRICOREISD
 
 class TriCoreSubtarget;
 
 class TriCoreTargetLowering : public TargetLowering {
+private:
+  const TargetMachine &TM;
+  const TriCoreSubtarget &Subtarget;
 public:
   TriCoreTargetLowering(const TargetMachine &TM, const TriCoreSubtarget &STI);
   
+  /// getTargetNodeName - This method returns the name of a target specific
+  //  DAG node.
   const char *getTargetNodeName(unsigned Opcode) const override;
+
   SDValue LowerFormalArguments(SDValue Chain, CallingConv::ID CallConv,
                               bool IsVarArg,
                               const SmallVectorImpl<ISD::InputArg> &Ins,
                               const SDLoc &DL, SelectionDAG &DAG,
                               SmallVectorImpl<SDValue> &InVals) const override;
+
   SDValue LowerReturn(SDValue Chain, CallingConv::ID CallConv, bool IsVarArg,
                     const SmallVectorImpl<ISD::OutputArg> &Outs,
                     const SmallVectorImpl<SDValue> &OutVals, const SDLoc &DL,
                     SelectionDAG &DAG) const override;
+
   const TriCoreRegisterInfo *TRI;
 };
 } // namespace llvm

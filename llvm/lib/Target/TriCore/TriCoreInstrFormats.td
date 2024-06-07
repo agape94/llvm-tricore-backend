@@ -96,6 +96,24 @@ class RR<bits<8> op1, bits<8> op2, dag outs, dag ins, string asmstr,
 }
 
 //===----------------------------------------------------------------------===//
+// 32-bit RC Instruction Format: <d|op2|const9|s1|op1>
+//===----------------------------------------------------------------------===//
+class RC<bits<8> op1, bits<7> op2, dag outs, dag ins, string asmstr,
+                  list<dag> pattern> : T32<outs, ins, asmstr, pattern> {
+
+  bits<4> d;
+  bits<9> const9;
+  bits<4> s1;
+
+  let Inst{31-28} = d;
+  let Inst{27-21} = op2;
+  let Inst{20-12} = const9;
+  let Inst{11-8} = s1;
+  let Inst{7-0} = op1;
+  let DecoderMethod = "DecodeRCInstruction";
+}
+
+//===----------------------------------------------------------------------===//
 // 16-bit SRC Instruction Format: <const4|s1/d|op1>
 //===----------------------------------------------------------------------===//
 class SRC<bits<8> op1, dag outs, dag ins, string asmstr, list<dag> pattern>
@@ -226,4 +244,39 @@ class SRR<bits<8> op1, dag outs, dag ins, string asmstr, list<dag> pattern>
   let Inst{11-8} = s1_d;
   let Inst{7-0} = op1;
   let DecoderMethod = "DecodeSRRInstruction";
+}
+
+//===----------------------------------------------------------------------===//
+// 32-bit RCPW Instruction Format: <d|pos|op2|width|const4|s1|op1>
+//===----------------------------------------------------------------------===//
+class RCPW<bits<8> op1, bits<2> op2 , dag outs, dag ins, string asmstr,
+                list<dag> pattern> : T32<outs, ins, asmstr, pattern> {
+
+  bits<4> d;
+  bits<5> pos;
+  bits<5> width;
+  bits<4> const4;
+  bits<4> s1;
+
+  let Inst{31-28} = d;
+  let Inst{27-23} = pos;
+  let Inst{22-21} = op2;
+  let Inst{20-16} = width;
+  let Inst{15-12} = const4;
+  let Inst{11-8} = s1;
+  let Inst{7-0} = op1;
+  let DecoderMethod = "DecodeRCPWInstruction";
+}
+
+//===----------------------------------------------------------------------===//
+// 16-bit SC Instruction Format: <const8|op1>
+//===----------------------------------------------------------------------===//
+class SC<bits<8> op1, dag outs, dag ins, string asmstr, list<dag> pattern>
+    : T16<outs, ins, asmstr, pattern> {
+
+  bits<8> const8;
+
+  let Inst{15-8} = const8;
+  let Inst{7-0} = op1;
+  let DecoderMethod = "DecodeSCInstruction";
 }

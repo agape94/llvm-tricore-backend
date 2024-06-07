@@ -31,32 +31,76 @@
 
 using namespace llvm;
 
-TriCoreRegisterInfo::TriCoreRegisterInfo() : TriCoreGenRegisterInfo(TRICORE::D0) {}
+TriCoreRegisterInfo::TriCoreRegisterInfo() : TriCoreGenRegisterInfo(TRICORE::A11) {}
 
 const uint16_t *
 TriCoreRegisterInfo::getCalleeSavedRegs(const MachineFunction * /*MF*/) const {
-  static const uint16_t CalleeSavedRegs[] = {
-    TRICORE::D4,
-    0
-  };
+  static const MCPhysReg CalleeSavedRegs[] = { 0 };  
   return CalleeSavedRegs;
 }
 
 BitVector TriCoreRegisterInfo::getReservedRegs(const MachineFunction &MF) const {
-  BitVector Reserved(getNumRegs());
-  Reserved.set(TRICORE::D8);
-  // Add more registers that should be reserved
+    BitVector Reserved(getNumRegs());
+
+  Reserved.set(TRICORE::PC);
+  Reserved.set(TRICORE::PCXI);
+  Reserved.set(TRICORE::A10);
+  Reserved.set(TRICORE::A11);
+  Reserved.set(TRICORE::PSW);
+  Reserved.set(TRICORE::FCX);
   return Reserved;
 }
 
 bool TriCoreRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
                                             int SPAdj, unsigned FIOperandNum,
                                             RegScavenger *RS) const {
-  // true indicates that we changed the instruction.
-  return true;
+  assert(SPAdj == 0 && "Unexpected");
+  MachineInstr &MI = *II;
+  const MachineFunction &MF = *MI.getParent()->getParent();
+  DebugLoc dl = MI.getDebugLoc();
+  MachineBasicBlock &MBB = *MI.getParent();
+  const auto& MFI = MF.getFrameInfo();
+  MachineOperand &FIOp = MI.getOperand(FIOperandNum);
+  unsigned FI = FIOp.getIndex();
+  const TargetFrameLowering *TFI = MF.getSubtarget().getFrameLowering();
+  unsigned BasePtr = (TFI->hasFP(MF) ? TRICORE::A14 : TRICORE::A10);
+  // Determine if we can eliminate the index from this kind of instruction.
+  unsigned ImmOpIdx = 0;
+
+  if (MI.getOpcode() == TRICORE::ADDrc) {    
+    int Offset = MFI.getObjectOffset(FI);    
+    Offset = -Offset;
+    const TargetInstrInfo &TII = *MF.getSubtarget().getInstrInfo();
+    MI.setDesc(TII.get(TRICORE::MOV_Drr));
+    MI.getOperand(FIOperandNum).ChangeToRegister(BasePtr, false);
+
+    if (Offset == 0)
+      return false;
+
+    // We need to materialize the offset via add instruction.
+    unsigned DstReg = MI.getOperand(0).getReg();
+    if (Offset < 0) {
+      BuildMI(MBB, std::next(II), dl, TII.get(TRICORE::ADDrc), DstReg).addReg(
+          DstReg).addImm(Offset);
+    } else
+      BuildMI(MBB, std::next(II), dl, TII.get(TRICORE::ADDrc), DstReg).addReg(
+          DstReg).addImm(-Offset);
+
+    return true;
+  }
+
+  ImmOpIdx = FIOperandNum + 1;
+
+  // FIXME: check the size of offset.
+  MachineOperand &ImmOp = MI.getOperand(ImmOpIdx);
+  int Offset = MFI.getObjectOffset(FI);
+  FIOp.ChangeToRegister(BasePtr, false);
+  ImmOp.setImm(Offset);
+  return false;
 }
 
 Register
-TriCoreRegisterInfo::getFrameRegister(const MachineFunction & /*MF*/) const {
-  return TRICORE::D10;
+TriCoreRegisterInfo::getFrameRegister(const MachineFunction & MF) const {
+  const TriCoreFrameLowering *TFI = getFrameLowering(MF);
+  return TFI->hasFP(MF) ? TRICORE::A14 : TRICORE::A10;
 }

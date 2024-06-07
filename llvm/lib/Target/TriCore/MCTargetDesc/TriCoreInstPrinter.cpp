@@ -9,7 +9,7 @@
 // This class prints an TriCore MCInst to a .s file.
 //
 //===----------------------------------------------------------------------===//
-
+#include <cmath>
 #include "TriCoreInstPrinter.h"
 #include "TriCoreMCExpr.h"
 #include "TriCoreAluCode.h"
