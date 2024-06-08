@@ -1,4 +1,6 @@
 # LLVM Backend for the TriCore TC1.6 architecture
+> **Note**: This backend is based on the old LLVM TriCore TC1.3 backend. The code can be found [in this GitHub repo](https://github.com/TriDis/llvm-tricore).
+
 > **WARNING:** The functionality of the compiler was NOT tested in a comprehensive way. Please check the assembly code before running it on your hardware! 
 
 > **Note:** The relevant code for this backend can be found in [this folder](llvm/lib/Target/TriCore/).
