@@ -5,7 +5,7 @@
 
 > **Note:** The relevant code for this backend can be found in [this folder](llvm/lib/Target/TriCore/).
 
-This project aims to provide an open source, LLVM-based compiler for the `TriCore TC1.x` architecture. At the moment, only a reduced set of instructions from the `TriCore EABI` are supported, more will be added in the future.
+This project aims to provide an open source, LLVM-based compiler for the `TriCore TC1.x` architecture. The instructions and register definitions as well as instruction selection implementations are based on the old LLVM TriCore TC1.3 backend that was developed in 2016. You can find the repository [here](https://github.com/TriDis/llvm-tricore).
 
 ## Build
 ### Build command
