@@ -357,7 +357,13 @@ public:
     VK_VE_TPOFF_LO32,  // symbol@tpoff_lo
 
     VK_TPREL,
-    VK_DTPREL
+    VK_DTPREL,
+
+    // TRICORE
+    VK_TRICORE_LO,
+    VK_TRICORE_HI,
+    VK_TRICORE_LO_OFFSET,
+    VK_TRICORE_HI_OFFSET,
   };
 
 private:
