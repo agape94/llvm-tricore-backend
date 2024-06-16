@@ -22,6 +22,21 @@
 
 namespace llvm {
 
+namespace TriCoreCC {
+  enum CondCodes {
+    COND_EQ, // Equal
+    COND_NE, // Not equal
+    COND_GE, // Greater than or equal
+    COND_LT, // Less than
+    COND_INVALID
+  };
+
+  enum LogicCodes {
+      LOGIC_AND, // AND
+      LOGIC_OR,  // OR
+      LOGIC_INVALID
+    };
+}
 class TriCoreInstrInfo : public TriCoreGenInstrInfo {
   const TriCoreRegisterInfo RegisterInfo;
 

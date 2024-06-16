@@ -59,6 +59,10 @@ private:
   const TargetMachine &TM;
   const TriCoreSubtarget &Subtarget;
 public:
+
+  /// LowerOperation - Provide custom lowering hooks for some operations.
+  SDValue LowerOperation(SDValue Op, SelectionDAG &DAG) const override;
+
   TriCoreTargetLowering(const TargetMachine &TM, const TriCoreSubtarget &STI);
   
   /// getTargetNodeName - This method returns the name of a target specific
@@ -75,6 +79,38 @@ public:
                     const SmallVectorImpl<ISD::OutputArg> &Outs,
                     const SmallVectorImpl<SDValue> &OutVals, const SDLoc &DL,
                     SelectionDAG &DAG) const override;
+
+  SDValue LowerCall(TargetLowering::CallLoweringInfo &CLI,
+                      SmallVectorImpl<SDValue> &InVals) const override;
+
+
+  SDValue LowerCallResult(SDValue Chain, SDValue InGlue,
+                          CallingConv::ID CallConv, bool isVarArg,
+                          const SmallVectorImpl<ISD::InputArg> &Ins, SDLoc dl,
+                          SelectionDAG &DAG,
+                          SmallVectorImpl<SDValue> &InVals) const;
+
+  bool CanLowerReturn(CallingConv::ID CallConv, MachineFunction &MF,
+                      bool isVarArg,
+                      const SmallVectorImpl<ISD::OutputArg> &ArgsFlags,
+                      LLVMContext &Context) const;
+
+  // LowerGlobalAddress - Emit a constant load to the global address.
+  SDValue LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;
+
+  MachineBasicBlock* EmitInstrWithCustomInserter(MachineInstr *MI,
+                                                  MachineBasicBlock *BB) const;
+
+  // Lower Branch
+  SDValue LowerBR_CC(SDValue Op, SelectionDAG &DAG) const;
+
+  // Lower SELECT_CC
+  SDValue LowerSELECT_CC(SDValue Op, SelectionDAG &DAG) const;
+
+  SDValue LowerSETCC(SDValue Op, SelectionDAG &DAG) const;
+
+  // Lower Shift Instruction
+  SDValue LowerShifts(SDValue Op, SelectionDAG &DAG) const;
 
   const TriCoreRegisterInfo *TRI;
 };
