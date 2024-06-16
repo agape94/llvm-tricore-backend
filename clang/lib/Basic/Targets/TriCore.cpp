@@ -18,9 +18,10 @@ using namespace clang;
 using namespace clang::targets;
 
 const char *const TriCoreTargetInfo::GCCRegNames[] = {
-    "r0",  "r1",  "r2",  "r3",  "r4",  "r5",  "r6",  "r7",  "r8",  "r9",  "r10",
-    "r11", "r12", "r13", "r14", "r15", "r16", "r17", "r18", "r19", "r20", "r21",
-    "r22", "r23", "r24", "r25", "r26", "r27", "r28", "r29", "r30", "r31"
+    "d0",  "d1",  "d2",  "d3",  "d4",  "d5",  "d6",  "d7",  "d8",  "d9",  "d10",
+    "d11", "d12", "d13", "d14", "d15", "a0",  "a1",  "a2",  "a3",  "a4",  "a5",  "a6",  "a7",  "a8",  "a9",  "a10",
+    "a11", "a12", "a13", "a14", "a15", "e0", "e2", "e4", "e6", "e8", "e10", "e12", "e14", 
+    "psw", "pcxi", "pc", "fcx"
 };
 
 ArrayRef<const char *> TriCoreTargetInfo::getGCCRegNames() const {
@@ -28,43 +29,17 @@ ArrayRef<const char *> TriCoreTargetInfo::getGCCRegNames() const {
 }
 
 const TargetInfo::GCCRegAlias TriCoreTargetInfo::GCCRegAliases[] = {
-    {{"pc"}, "r2"},   {{"sp"}, "r4"},   {{"fp"}, "r5"},   {{"rv"}, "r8"},
-    {{"rr1"}, "r10"}, {{"rr2"}, "r11"}, {{"rca"}, "r15"},
+    {{"pc"}, "pc"},   {{"sp"}, "a10"},   {{"fp"}, "a14"},   {{"rv"}, "d2"},
+    // {{"rr1"}, "r10"}, {{"rr2"}, "r11"}, {{"rca"}, "r15"},
 };
 
 ArrayRef<TargetInfo::GCCRegAlias> TriCoreTargetInfo::getGCCRegAliases() const {
   return llvm::ArrayRef(GCCRegAliases);
 }
 
-bool TriCoreTargetInfo::isValidCPUName(StringRef Name) const {
-  return llvm::StringSwitch<bool>(Name).Case("v11", true).Default(false);
-}
-void TriCoreTargetInfo::fillValidCPUList(
-    SmallVectorImpl<StringRef> &Values) const {
-  Values.emplace_back("v11");
-}
-
-bool TriCoreTargetInfo::setCPU(const std::string &Name) {
-  CPU = llvm::StringSwitch<CPUKind>(Name).Case("v11", CK_V11).Default(CK_NONE);
-
-  return CPU != CK_NONE;
-}
-
-bool TriCoreTargetInfo::hasFeature(StringRef Feature) const {
-  return llvm::StringSwitch<bool>(Feature).Case("tricore", true).Default(false);
-}
-
 void TriCoreTargetInfo::getTargetDefines(const LangOptions &Opts,
                                        MacroBuilder &Builder) const {
-  // Define __tricore__ when building for target tricore.
-  Builder.defineMacro("__tricore__");
-
-  // Set define for the CPU specified.
-  switch (CPU) {
-  case CK_V11:
-    Builder.defineMacro("__TRICORE_V11__");
-    break;
-  case CK_NONE:
-    llvm_unreachable("Unhandled target CPU");
-  }
+  Builder.defineMacro("tricore");
+  Builder.defineMacro("__TRICORE__");
 }
+

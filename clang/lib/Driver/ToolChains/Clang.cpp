@@ -2404,19 +2404,6 @@ void Clang::AddTriCoreTargetArgs(const ArgList &Args,
     CmdArgs.push_back("-target-cpu");
     CmdArgs.push_back(Args.MakeArgString(CPUName));
   }
-  if (Arg *A = Args.getLastArg(options::OPT_mregparm_EQ)) {
-    StringRef Value = A->getValue();
-    // Only support mregparm=4 to support old usage. Report error for all other
-    // cases.
-    int Mregparm;
-    if (Value.getAsInteger(10, Mregparm)) {
-      if (Mregparm != 4) {
-        getToolChain().getDriver().Diag(
-            diag::err_drv_unsupported_option_argument)
-            << A->getSpelling() << Value;
-      }
-    }
-  }
 }
 
 void Clang::AddWebAssemblyTargetArgs(const ArgList &Args,

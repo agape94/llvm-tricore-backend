@@ -50,7 +50,7 @@ static std::string computeDataLayout() {
   //        "-n32"     // 32 bit native integer width
   //        "-S64";    // 64 bit natural stack alignment
   // The Data layout has to be kept in sync with clang/lib/Basic/Targets.cpp
-  return "";
+  return "e-m:e-p:32:32-i64:32-a:0:32-n32";
 }
 
 static Reloc::Model getEffectiveRelocModel(std::optional<Reloc::Model> RM) {
