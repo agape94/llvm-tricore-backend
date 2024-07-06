@@ -58,12 +58,12 @@ inv b -b Debug
 
 ## Generate assembly code
 
-If the build is successful, a new directory will be created inside the environment directory. This directory will be called `build_<target-name>`, and will contain all the binaries generated, including `llc`, which is the actual compiler we are interested in.
+If the build is successful, a new directory will be created inside the environment directory. This directory will be called `build_<target-name>`, and will contain all the binaries generated, including `clang` and `llc`, which are the tools we are interested in.
 
 As input, `llc` needs `LLVM IR` source code. Create a new file `main.ll` and place the following code inside.
 ```
 ; ModuleID = 'Example.c'
-source_filename = "/home/alex/temp/llvm-simple-test/example.c"
+source_filename = "/temp/llvm-simple-test/example.c"
 target datalayout = "e-m:e-p:32:32-i64:64-n32-S128"
 target triple = "tricore"
 
@@ -133,6 +133,31 @@ main$local:
         .ident  "clang version 17.0.6"
         .section        ".note.GNU-stack","",@progbits
 ```
+
+## Clang integration
+For the ease of use of the compiler, `clang` can be used to automatically generate the `LLVM IR` code which is the input for `llc`. 
+Let's say we have the following `C` code which we want to generate the assembly for:
+```
+// main.c
+int mean_value(int a, int b)
+{
+        int c = a + b;
+        return c/2;
+}
+int main()
+{
+        int a;
+        a = 100;
+        int b = a + 300;
+        return mean_value(a, b);
+}
+```
+In this example we have a function called `mean_value` which takes two integer arguments `a` and `b` and computes their mean value. 
+Let's use `clang` to generate the assembly code for this code. For this, run the following command:
+```
+./build_tricore_<build_type>/bin/clang /temp/main.c -o /temp/main.s --target=tricore -S
+```
+The assembly code will be placed at the path after the `-o` parameter.
 
 ## Binary code
 For now, the assembler is not implemented. Please use an existing assembler to generate the binary.
