@@ -26,13 +26,16 @@ class MCObjectTargetWriter;
 class MCSubtargetInfo;
 class Target;
 
-extern Target TheTriCoreTarget;
+// extern Target TheTriCoreTarget;
 
 MCAsmBackend *createTriCoreAsmBackend(const Target &T, const MCSubtargetInfo &STI,
                                     const MCRegisterInfo &MRI,
                                     const MCTargetOptions &Options);
 
 std::unique_ptr<MCObjectTargetWriter> createTriCoreELFObjectWriter(uint8_t OSABI);
+
+MCCodeEmitter *createTriCoreMCCodeEmitter(const MCInstrInfo &MCII, MCContext &Ctx);
+
 } // namespace llvm
 
 // Defines symbolic names for TriCore registers.  This defines a mapping from

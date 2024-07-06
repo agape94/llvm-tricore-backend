@@ -68,25 +68,34 @@ static MCRegisterInfo *createTriCoreMCRegisterInfo(const Triple & /*TT*/) {
   return X;
 }
 
+static MCAsmInfo *createTriCoreMCAsmInfo(const MCRegisterInfo &MRI,
+                                        const Triple &TT,
+                                        const MCTargetOptions &Options) {
+  return new TriCoreMCAsmInfo(TT, Options);
+}
 
 extern "C" LLVM_EXTERNAL_VISIBILITY void LLVMInitializeTriCoreTargetMC() {
+  Target &T = getTheTriCoreTarget();
+  
   // Register the MC asm info.
-  RegisterMCAsmInfo<TriCoreMCAsmInfo> X(getTheTriCoreTarget());
+  TargetRegistry::RegisterMCAsmInfo(T, createTriCoreMCAsmInfo);
 
   // Register the MC instruction info.
-  TargetRegistry::RegisterMCInstrInfo(getTheTriCoreTarget(),
-                                      createTriCoreMCInstrInfo);
+  TargetRegistry::RegisterMCInstrInfo(T, createTriCoreMCInstrInfo);
 
   // Register the MC register info.
-  TargetRegistry::RegisterMCRegInfo(getTheTriCoreTarget(),
-                                    createTriCoreMCRegisterInfo);
+  TargetRegistry::RegisterMCRegInfo(T, createTriCoreMCRegisterInfo);
 
   // Register the MC subtarget info.
-  TargetRegistry::RegisterMCSubtargetInfo(getTheTriCoreTarget(),
+  TargetRegistry::RegisterMCSubtargetInfo(T,
                                           createTriCoreMCSubtargetInfo);
 
-  // Register the MCInstPrinter.
-  TargetRegistry::RegisterMCInstPrinter(getTheTriCoreTarget(),
-                                        createTriCoreMCInstPrinter);
+  // Register the MCInstPrinter
+  TargetRegistry::RegisterMCInstPrinter(T, createTriCoreMCInstPrinter);
 
+  // Register the ASM Backend.
+  TargetRegistry::RegisterMCAsmBackend(T, createTriCoreAsmBackend);
+
+  // Register the MCCodeEmitter
+  TargetRegistry::RegisterMCCodeEmitter(T, createTriCoreMCCodeEmitter);
 }
