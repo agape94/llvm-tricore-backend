@@ -158,6 +158,56 @@ Let's use `clang` to generate the assembly code for this code. For this, run the
 ./build_tricore_<build_type>/bin/clang /temp/main.c -o /temp/main.s --target=tricore -S
 ```
 The assembly code will be placed at the path after the `-o` parameter.
+The corresponding assembly code is shown below:
+```
+        .text
+        .file   "variables-function.c"
+        .globl  mean_value                      # -- Begin function mean_value
+        .type   mean_value,@function
+mean_value:                             # @mean_value
+# %bb.0:
+        mov.aa %a14, %a10
+        sub.a %a10, 16
+        st.w [%a14] -4, %d4
+        st.w [%a14] -8, %d5
+        ld.w %d2, [%a14] -4
+        ld.w %d15, [%a14] -8
+        add %d15, %d2
+        st.w [%a14] -12, %d15
+        ld.w %d2, [%a14] -12
+        sh %d15, %d2, -31
+        add %d15, %d2
+        sha %d2, %d15, -1
+        ret
+.Lfunc_end0:
+        .size   mean_value, .Lfunc_end0-mean_value
+                                        # -- End function
+        .globl  main                            # -- Begin function main
+        .type   main,@function
+main:                                   # @main
+# %bb.0:
+        mov.aa %a14, %a10
+        sub.a %a10, 16
+        mov %d15, 0
+        st.w [%a14] -4, %d15
+        mov %d15, 100
+        st.w [%a14] -8, %d15
+        ld.w %d3, [%a14] -8
+        mov %d15, 300
+        add %d15, %d3
+        st.w [%a14] -12, %d15
+        ld.w %d4, [%a14] -8
+        ld.w %d5, [%a14] -12
+        call mean_value
+        ret
+.Lfunc_end1:
+        .size   main, .Lfunc_end1-main
+                                        # -- End function
+        .ident  "clang version 17.0.6 (git@gitlab.tugraz.at:D2269AF97C2F43AC/llvm-tricore-backend.git 003a81956423403acbcfd3111e7880311f546430)"
+        .section        ".note.GNU-stack","",@progbits
+        .addrsig
+        .addrsig_sym mean_value
+```
 
 ## Binary code
 For now, the assembler is not implemented. Please use an existing assembler to generate the binary.
