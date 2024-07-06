@@ -16,6 +16,7 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/CodeGen/MachineFunctionPass.h"
+#include "llvm/CodeGen/MachineFrameInfo.h"
 #include "llvm/CodeGen/MachineInstrBuilder.h"
 #include "llvm/CodeGen/MachineRegisterInfo.h"
 #include "llvm/MC/TargetRegistry.h"
@@ -45,79 +46,79 @@ DebugLoc DL = MI.getDebugLoc();
   {
   default:
     return false;
-  // case TRICORE::NOTrr64: {
-  //   unsigned OpLo, OpHi, DstLoReg, DstHiReg;
+  case TRICORE::NOTrr64: {
+    unsigned OpLo, OpHi, DstLoReg, DstHiReg;
 
-  //   unsigned DstReg = MI.getOperand(0).getReg();
+    unsigned DstReg = MI.getOperand(0).getReg();
 
-  //   bool DstIsDead = MI.getOperand(0).isDead();
-  //   bool DstIsKill = MI.getOperand(1).isKill();
+    bool DstIsDead = MI.getOperand(0).isDead();
+    bool DstIsKill = MI.getOperand(1).isKill();
 
-  //   splitRegs(DstReg, DstLoReg, DstHiReg);
+    splitRegs(DstReg, DstLoReg, DstHiReg);
 
-  //   OpLo = TRICORE::NOTsr;
-  //   OpHi = TRICORE::NOTsr;
+    OpLo = TRICORE::NOTsr;
+    OpHi = TRICORE::NOTsr;
 
-  //   BuildMI(MBB, MI, DL, get(OpLo))
-  //     .addReg(DstLoReg, RegState::Define | getDeadRegState(DstIsDead))
-  //     .addReg(DstLoReg, getKillRegState(DstIsKill));
+    BuildMI(MBB, MI, DL, get(OpLo))
+      .addReg(DstLoReg, RegState::Define | getDeadRegState(DstIsDead))
+      .addReg(DstLoReg, getKillRegState(DstIsKill));
 
-  //   BuildMI(MBB, MI, DL, get(OpHi))
-  //     .addReg(DstHiReg, RegState::Define | getDeadRegState(DstIsDead))
-  //     .addReg(DstHiReg, getKillRegState(DstIsKill));
+    BuildMI(MBB, MI, DL, get(OpHi))
+      .addReg(DstHiReg, RegState::Define | getDeadRegState(DstIsDead))
+      .addReg(DstHiReg, getKillRegState(DstIsKill));
 
-  //   MBB.erase(MI);
-  //   return true;
-  // }
-  // case TRICORE::ANDsrr64:
-  // case TRICORE::XORsrr64:
-  // case TRICORE::ORsrr64:{
-  //   unsigned OpLo, OpHi, Src0LoReg, Src0HiReg,
-  //             Src1LoReg, Src1HiReg, DstLoReg, DstHiReg;
-  //   unsigned DstReg = MI.getOperand(0).getReg();
-  //   unsigned Src0Reg = MI.getOperand(1).getReg();
-  //   unsigned Src1Reg = MI.getOperand(2).getReg();
+    MBB.erase(MI);
+    return true;
+  }
+  case TRICORE::ANDsrr64:
+  case TRICORE::XORsrr64:
+  case TRICORE::ORsrr64:{
+    unsigned OpLo, OpHi, Src0LoReg, Src0HiReg,
+              Src1LoReg, Src1HiReg, DstLoReg, DstHiReg;
+    unsigned DstReg = MI.getOperand(0).getReg();
+    unsigned Src0Reg = MI.getOperand(1).getReg();
+    unsigned Src1Reg = MI.getOperand(2).getReg();
 
-  //   bool DstIsDead = MI.getOperand(0).isDead();
-  //   bool Src0IsKill = MI.getOperand(1).isKill();
-  //   bool Src1IsKill = MI.getOperand(2).isKill();
+    bool DstIsDead = MI.getOperand(0).isDead();
+    bool Src0IsKill = MI.getOperand(1).isKill();
+    bool Src1IsKill = MI.getOperand(2).isKill();
 
-  //   splitRegs(Src0Reg, Src0LoReg, Src0HiReg);
-  //   splitRegs(Src1Reg, Src1LoReg, Src1HiReg);
-  //   splitRegs(DstReg, DstLoReg, DstHiReg);
+    splitRegs(Src0Reg, Src0LoReg, Src0HiReg);
+    splitRegs(Src1Reg, Src1LoReg, Src1HiReg);
+    splitRegs(DstReg, DstLoReg, DstHiReg);
 
-  //   if (MI.getOpcode() == TRICORE::ANDsrr64) {
-  //       OpLo = TRICORE::ANDsrr;
-  //       OpHi = TRICORE::ANDsrr;
-  //   }
-  //   else if (MI.getOpcode() == TRICORE::XORsrr64) {
-  //     OpLo = TRICORE::XORsrr;
-  //     OpHi = TRICORE::XORsrr;
-  //   }
-  //   else {
-  //       OpLo = TRICORE::ORsrr;
-  //       OpHi = TRICORE::ORsrr;
-  //   }
+    if (MI.getOpcode() == TRICORE::ANDsrr64) {
+        OpLo = TRICORE::ANDsrr;
+        OpHi = TRICORE::ANDsrr;
+    }
+    else if (MI.getOpcode() == TRICORE::XORsrr64) {
+      OpLo = TRICORE::XORsrr;
+      OpHi = TRICORE::XORsrr;
+    }
+    else {
+        OpLo = TRICORE::ORsrr;
+        OpHi = TRICORE::ORsrr;
+    }
 
-  //   BuildMI(MBB, MI, DL, get(OpLo))
-  //     .addReg(DstLoReg, RegState::Define | getDeadRegState(DstIsDead))
-  //     .addReg(Src0LoReg, getKillRegState(Src0IsKill))
-  //     .addReg(Src1LoReg, getKillRegState(Src1IsKill));
+    BuildMI(MBB, MI, DL, get(OpLo))
+      .addReg(DstLoReg, RegState::Define | getDeadRegState(DstIsDead))
+      .addReg(Src0LoReg, getKillRegState(Src0IsKill))
+      .addReg(Src1LoReg, getKillRegState(Src1IsKill));
 
-  //   BuildMI(MBB, MI, DL, get(OpHi))
-  //     .addReg(DstHiReg, RegState::Define | getDeadRegState(DstIsDead))
-  //     .addReg(Src0HiReg, getKillRegState(Src0IsKill))
-  //     .addReg(Src1HiReg, getKillRegState(Src1IsKill));
+    BuildMI(MBB, MI, DL, get(OpHi))
+      .addReg(DstHiReg, RegState::Define | getDeadRegState(DstIsDead))
+      .addReg(Src0HiReg, getKillRegState(Src0IsKill))
+      .addReg(Src1HiReg, getKillRegState(Src1IsKill));
 
-  //   MBB.erase(MI);
-  //   return true;
-  // }
+    MBB.erase(MI);
+    return true;
+  }
   case TRICORE::XORrc64:
   case TRICORE::ANDrc64:
   case TRICORE::ORrc64:
-  // case TRICORE::ANDNrc64:
-  // case TRICORE::ORNrc64:
-  // case TRICORE::XORrcneg64:
+  case TRICORE::ANDNrc64:
+  case TRICORE::ORNrc64:
+  case TRICORE::XORrcneg64:
   {
       unsigned OpLo, OpHi, Src0LoReg, Src0HiReg,
       DstLoReg, DstHiReg;
@@ -143,18 +144,18 @@ DebugLoc DL = MI.getDebugLoc();
         OpLo = TRICORE::XORrc;
         OpHi = TRICORE::XORrc;
       }
-      // else if (MI.getOpcode() == TRICORE::XORrcneg64) {
-      //   OpLo = TRICORE::XNORrc;
-      //   OpHi = TRICORE::XNORrc;
-      // }
-      // else if (MI.getOpcode() == TRICORE::ORNrc64) {
-      //   OpLo = TRICORE::ORNrc;
-      //   OpHi = TRICORE::ORNrc;
-      // }
-      // else if(MI.getOpcode() == TRICORE::ANDNrc64) {
-      //   OpLo = TRICORE::ANDNrc;
-      //   OpHi = TRICORE::ANDNrc;
-      // }
+      else if (MI.getOpcode() == TRICORE::XORrcneg64) {
+        OpLo = TRICORE::XNORrc;
+        OpHi = TRICORE::XNORrc;
+      }
+      else if (MI.getOpcode() == TRICORE::ORNrc64) {
+        OpLo = TRICORE::ORNrc;
+        OpHi = TRICORE::ORNrc;
+      }
+      else if(MI.getOpcode() == TRICORE::ANDNrc64) {
+        OpLo = TRICORE::ANDNrc;
+        OpHi = TRICORE::ANDNrc;
+      }
       else {
         OpLo = TRICORE::ORrc;
         OpHi = TRICORE::ORrc;
@@ -173,102 +174,102 @@ DebugLoc DL = MI.getDebugLoc();
       MBB.erase(MI);
       return true;
     }
-  // case TRICORE::ADDi64:
-  // case TRICORE::SUBi64:{
+  case TRICORE::ADDi64:
+  case TRICORE::SUBi64:{
 
-  //   unsigned OpLo, OpHi, Src0LoReg, Src0HiReg,
-  //             Src1LoReg, Src1HiReg, DstLoReg, DstHiReg;
-  //   unsigned DstReg = MI.getOperand(0).getReg();
-  //   unsigned Src0Reg = MI.getOperand(1).getReg();
-  //   unsigned Src1Reg = MI.getOperand(2).getReg();
+    unsigned OpLo, OpHi, Src0LoReg, Src0HiReg,
+              Src1LoReg, Src1HiReg, DstLoReg, DstHiReg;
+    unsigned DstReg = MI.getOperand(0).getReg();
+    unsigned Src0Reg = MI.getOperand(1).getReg();
+    unsigned Src1Reg = MI.getOperand(2).getReg();
 
-  //   bool DstIsDead = MI.getOperand(0).isDead();
-  //   bool Src0IsKill = MI.getOperand(1).isKill();
-  //   bool Src1IsKill = MI.getOperand(2).isKill();
-  //   bool ImpIsDead = MI.getOperand(3).isDead();
+    bool DstIsDead = MI.getOperand(0).isDead();
+    bool Src0IsKill = MI.getOperand(1).isKill();
+    bool Src1IsKill = MI.getOperand(2).isKill();
+    bool ImpIsDead = MI.getOperand(3).isDead();
 
-  //   splitRegs(Src0Reg, Src0LoReg, Src0HiReg);
-  //   splitRegs(Src1Reg, Src1LoReg, Src1HiReg);
-  //   splitRegs(DstReg, DstLoReg, DstHiReg);
+    splitRegs(Src0Reg, Src0LoReg, Src0HiReg);
+    splitRegs(Src1Reg, Src1LoReg, Src1HiReg);
+    splitRegs(DstReg, DstLoReg, DstHiReg);
 
-  //   if (MI.getOpcode() == TRICORE::ADDi64) {
-  //     OpLo = TRICORE::ADDXrr;
-  //     OpHi = TRICORE::ADDCrr;
-  //   }
-  //   else {
-  //     OpLo = TRICORE::SUBXrr;
-  //     OpHi = TRICORE::SUBCrr;
-  //   }
+    if (MI.getOpcode() == TRICORE::ADDi64) {
+      OpLo = TRICORE::ADDXrr;
+      OpHi = TRICORE::ADDCrr;
+    }
+    else {
+      OpLo = TRICORE::SUBXrr;
+      OpHi = TRICORE::SUBCrr;
+    }
 
-  //   auto MIBLO =
-  //         BuildMI(MBB, MI, DL, get(OpLo))
-  //             .addReg(DstLoReg, RegState::Define | getDeadRegState(DstIsDead))
-  //             .addReg(Src0LoReg, getKillRegState(Src0IsKill))
-  //             .addReg(Src1LoReg, getKillRegState(Src1IsKill));
+    auto MIBLO =
+          BuildMI(MBB, MI, DL, get(OpLo))
+              .addReg(DstLoReg, RegState::Define | getDeadRegState(DstIsDead))
+              .addReg(Src0LoReg, getKillRegState(Src0IsKill))
+              .addReg(Src1LoReg, getKillRegState(Src1IsKill));
 
-  //   //PSW is implicitly killed
-  //   MIBLO->getOperand(4).setIsKill();
+    //PSW is implicitly killed
+    MIBLO->getOperand(4).setIsKill();
 
-  //   auto MIBHI =
-  //             BuildMI(MBB, MI, DL, get(OpHi))
-  //                 .addReg(DstHiReg, RegState::Define | getDeadRegState(DstIsDead))
-  //                 .addReg(Src0HiReg, getKillRegState(Src0IsKill))
-  //                 .addReg(Src1HiReg, getKillRegState(Src1IsKill));
+    auto MIBHI =
+              BuildMI(MBB, MI, DL, get(OpHi))
+                  .addReg(DstHiReg, RegState::Define | getDeadRegState(DstIsDead))
+                  .addReg(Src0HiReg, getKillRegState(Src0IsKill))
+                  .addReg(Src1HiReg, getKillRegState(Src1IsKill));
 
-  //   if (ImpIsDead)
-  //       MIBHI->getOperand(3).setIsDead();
+    if (ImpIsDead)
+        MIBHI->getOperand(3).setIsDead();
 
-  //   // PSW is always implicitly killed
-  //   MIBHI->getOperand(4).setIsKill();
-  //   MBB.erase(MI);
-  //   return true;
-  // }
-  // case TRICORE::ADDi64C: {
-  //   unsigned OpLo, OpHi, Src0LoReg, Src0HiReg,
-  //   DstLoReg, DstHiReg;
+    // PSW is always implicitly killed
+    MIBHI->getOperand(4).setIsKill();
+    MBB.erase(MI);
+    return true;
+  }
+  case TRICORE::ADDi64C: {
+    unsigned OpLo, OpHi, Src0LoReg, Src0HiReg,
+    DstLoReg, DstHiReg;
 
-  //   unsigned DstReg = MI.getOperand(0).getReg();
-  //   unsigned Src0Reg = MI.getOperand(1).getReg();
+    unsigned DstReg = MI.getOperand(0).getReg();
+    unsigned Src0Reg = MI.getOperand(1).getReg();
 
-  //   bool DstIsDead = MI.getOperand(0).isDead();
-  //   bool Src0IsKill = MI.getOperand(1).isKill();
-  //   bool ImpIsDead = MI.getOperand(3).isDead();
+    bool DstIsDead = MI.getOperand(0).isDead();
+    bool Src0IsKill = MI.getOperand(1).isKill();
+    bool ImpIsDead = MI.getOperand(3).isDead();
 
-  //   int64_t immVal = MI.getOperand(2).getImm();
-  //   int32_t lowByte = immVal & 0xffffffff;
-  //   int32_t highByte = (immVal>>32) & 0xffffffff;
+    int64_t immVal = MI.getOperand(2).getImm();
+    int32_t lowByte = immVal & 0xffffffff;
+    int32_t highByte = (immVal>>32) & 0xffffffff;
 
-  //   splitRegs(Src0Reg, Src0LoReg, Src0HiReg);
-  //   splitRegs(DstReg, DstLoReg, DstHiReg);
+    splitRegs(Src0Reg, Src0LoReg, Src0HiReg);
+    splitRegs(DstReg, DstLoReg, DstHiReg);
 
-  //   OpLo = TRICORE::ADDXrc;
-  //   OpHi = TRICORE::ADDCrc;
+    OpLo = TRICORE::ADDXrc;
+    OpHi = TRICORE::ADDCrc;
 
-  //   auto MIBLO =
-  //       BuildMI(MBB, MI, DL, get(OpLo))
-  //       .addReg(DstLoReg, RegState::Define | getDeadRegState(DstIsDead))
-  //       .addReg(Src0LoReg, getKillRegState(Src0IsKill))
-  //       .addImm(lowByte);
+    auto MIBLO =
+        BuildMI(MBB, MI, DL, get(OpLo))
+        .addReg(DstLoReg, RegState::Define | getDeadRegState(DstIsDead))
+        .addReg(Src0LoReg, getKillRegState(Src0IsKill))
+        .addImm(lowByte);
 
-  //   //PSW is implicitly killed
-  //   MIBLO->getOperand(4).setIsKill();
+    //PSW is implicitly killed
+    MIBLO->getOperand(4).setIsKill();
 
-  //   auto MIBHI =
-  //       BuildMI(MBB, MI, DL, get(OpHi))
-  //       .addReg(DstHiReg, RegState::Define | getDeadRegState(DstIsDead))
-  //       .addReg(Src0HiReg, getKillRegState(Src0IsKill))
-  //       .addImm(highByte);
+    auto MIBHI =
+        BuildMI(MBB, MI, DL, get(OpHi))
+        .addReg(DstHiReg, RegState::Define | getDeadRegState(DstIsDead))
+        .addReg(Src0HiReg, getKillRegState(Src0IsKill))
+        .addImm(highByte);
 
-  //   if (ImpIsDead)
-  //     MIBHI->getOperand(3).setIsDead();
+    if (ImpIsDead)
+      MIBHI->getOperand(3).setIsDead();
 
-  //   // PSW is always implicitly killed
-  //   MIBHI->getOperand(4).setIsKill();
+    // PSW is always implicitly killed
+    MIBHI->getOperand(4).setIsKill();
 
-  //   MBB.erase(MI);
-  //   return true;
+    MBB.erase(MI);
+    return true;
 
-  // }
+  }
   case TRICORE::MOVi32: {
 
     const unsigned DstReg = MI.getOperand(0).getReg();
