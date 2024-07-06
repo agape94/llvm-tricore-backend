@@ -3,7 +3,7 @@ add_llvm_component_library(LLVMTriCoreDesc
   TriCoreELFObjectWriter.cpp
   TriCoreInstPrinter.cpp
   TriCoreMCAsmInfo.cpp
-  # TriCoreMCCodeEmitter.cpp
+  TriCoreMCCodeEmitter.cpp
   TriCoreMCExpr.cpp
   TriCoreMCTargetDesc.cpp
 

@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "TriCoreMCInstLower.h"
-
+#include "MCTargetDesc/TriCoreBaseInfo.h"
 #include "MCTargetDesc/TriCoreMCExpr.h"
 #include "llvm/ADT/SmallString.h"
 #include "llvm/CodeGen/AsmPrinter.h"
@@ -28,17 +28,84 @@
 
 using namespace llvm;
 
+MCOperand TriCoreMCInstLower::LowerSymbolOperand(const MachineOperand &MO,
+                                             MachineOperandType MOTy,
+                                             unsigned Offset) const {
+  const MCSymbol *Symbol;
+
+  switch (MOTy) {
+  case MachineOperand::MO_MachineBasicBlock:
+    Symbol = MO.getMBB()->getSymbol();
+    break;
+  case MachineOperand::MO_GlobalAddress: {
+    Symbol = Printer.getSymbol(MO.getGlobal());
+    break;
+  }
+  case MachineOperand::MO_BlockAddress:
+    Symbol = Printer.GetBlockAddressSymbol(MO.getBlockAddress());
+    Offset += MO.getOffset();
+    break;
+  case MachineOperand::MO_ExternalSymbol:
+    Symbol = Printer.GetExternalSymbolSymbol(MO.getSymbolName());
+    Offset += MO.getOffset();
+    break;
+  case MachineOperand::MO_JumpTableIndex:
+    Symbol = Printer.GetJTISymbol(MO.getIndex());
+    break;
+  case MachineOperand::MO_ConstantPoolIndex:
+    Symbol = Printer.GetCPISymbol(MO.getIndex());
+    Offset += MO.getOffset();
+    break;
+  default:
+    llvm_unreachable("<unknown operand type>");
+  }
+
+  const unsigned Option = MO.getTargetFlags() & TriCoreII::MO_OPTION_MASK;
+  MCSymbolRefExpr::VariantKind Kind = MCSymbolRefExpr::VK_None;
+
+  switch (Option) {
+    default:
+      break;
+    case TriCoreII::MO_LO_OFFSET:
+      Kind = MCSymbolRefExpr::VK_TRICORE_LO_OFFSET;
+      break;
+    case TriCoreII::MO_HI_OFFSET:
+      Kind = MCSymbolRefExpr::VK_TRICORE_HI_OFFSET;
+      break;
+  }
+  const MCSymbolRefExpr *MCSym = MCSymbolRefExpr::create(Symbol, Kind, Ctx);
+
+  if (!Offset) {
+    return MCOperand::createExpr(MCSym);
+  }
+
+  return MCOperand::createExpr(MCSym);
+}
+
 MCOperand TriCoreMCInstLower::LowerOperand(const MachineOperand &MO,
                                          unsigned offset) const {
   MachineOperandType MOTy = MO.getType();
 
-  switch (MOTy) 
-  {
-    default: llvm_unreachable("unknown operand type");
-    case MachineOperand::MO_Register:
-      return MCOperand::createReg(MO.getReg());
-    case MachineOperand::MO_Immediate:
-      return MCOperand::createImm(MO.getImm() + offset);
+  switch (MOTy) {
+  default:
+    llvm_unreachable("unknown operand type");
+  case MachineOperand::MO_Register:
+    // Ignore all implicit register operands.
+    if (MO.isImplicit()) {
+      break;
+    }
+    return MCOperand::createReg(MO.getReg());
+  case MachineOperand::MO_Immediate:
+    return MCOperand::createImm(MO.getImm() + offset);
+  case MachineOperand::MO_MachineBasicBlock:
+  case MachineOperand::MO_GlobalAddress:
+  case MachineOperand::MO_ExternalSymbol:
+  case MachineOperand::MO_JumpTableIndex:
+  case MachineOperand::MO_ConstantPoolIndex:
+  case MachineOperand::MO_BlockAddress:
+    return LowerSymbolOperand(MO, MOTy, offset);
+  case MachineOperand::MO_RegisterMask:
+    break;
   }
 
   return MCOperand();

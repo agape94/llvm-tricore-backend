@@ -19,4 +19,21 @@ using namespace llvm;
 void TriCoreMCAsmInfo::anchor() {}
 
 TriCoreMCAsmInfo::TriCoreMCAsmInfo(const Triple & /*TheTriple*/,
-                               const MCTargetOptions &Options) {}
+                               const MCTargetOptions &Options) 
+{
+  SupportsDebugInformation = true;
+  Data8bitsDirective  = "\t.byte\t";
+  Data16bitsDirective = "\t.short\t";
+  Data32bitsDirective = "\t.word\t";
+  Data64bitsDirective = nullptr;
+  ZeroDirective = "\t.zero\t";
+  CommentString = "#";
+  UsesELFSectionDirectiveForBSS = true;
+  AlignmentIsInBytes = false;
+
+  AscizDirective = "\t.string ";
+
+  HiddenVisibilityAttr = MCSA_Invalid;
+  HiddenDeclarationVisibilityAttr = MCSA_Invalid;
+  ProtectedVisibilityAttr = MCSA_Invalid;
+}

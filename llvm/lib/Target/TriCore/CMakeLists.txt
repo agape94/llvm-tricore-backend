@@ -8,7 +8,7 @@ tablegen(LLVM TriCoreGenCallingConv.inc -gen-callingconv)
 tablegen(LLVM TriCoreGenDAGISel.inc -gen-dag-isel)
 tablegen(LLVM TriCoreGenDisassemblerTables.inc -gen-disassembler)
 tablegen(LLVM TriCoreGenInstrInfo.inc -gen-instr-info)
-# tablegen(LLVM TriCoreGenMCCodeEmitter.inc -gen-emitter)
+tablegen(LLVM TriCoreGenMCCodeEmitter.inc -gen-emitter)
 tablegen(LLVM TriCoreGenRegisterInfo.inc -gen-register-info)
 tablegen(LLVM TriCoreGenSubtargetInfo.inc -gen-subtarget)
 

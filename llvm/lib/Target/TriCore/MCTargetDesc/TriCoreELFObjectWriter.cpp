@@ -10,9 +10,11 @@
 #include "llvm/MC/MCELFObjectWriter.h"
 #include "llvm/MC/MCObjectWriter.h"
 #include "llvm/Support/ErrorHandling.h"
+#include "TriCoreMCTargetDesc.h"
+#include "TriCoreFixupKinds.h"
 
 using namespace llvm;
-
+namespace llvm {
 namespace {
 
 class TriCoreELFObjectWriter : public MCELFObjectTargetWriter {
@@ -24,8 +26,6 @@ public:
 protected:
   unsigned getRelocType(MCContext &Ctx, const MCValue &Target,
                         const MCFixup &Fixup, bool IsPCRel) const override;
-  bool needsRelocateWithSymbol(const MCSymbol &SD,
-                               unsigned Type) const override;
 };
 
 } // end anonymous namespace
@@ -37,16 +37,27 @@ TriCoreELFObjectWriter::TriCoreELFObjectWriter(uint8_t OSABI)
 unsigned TriCoreELFObjectWriter::getRelocType(MCContext & /*Ctx*/,
                                             const MCValue & /*Target*/,
                                             const MCFixup &Fixup,
-                                            bool /*IsPCRel*/) const {
-  return 0;
-}
+                                            bool IsPCRel) const {
+  if (!IsPCRel) {
+  llvm_unreachable("Only dealying with PC-relative fixups for now");
+  }
 
-bool TriCoreELFObjectWriter::needsRelocateWithSymbol(const MCSymbol & /*SD*/,
-                                                   unsigned Type) const {
-  return false;
+  unsigned Type = 0;
+  switch ((unsigned)Fixup.getKind()) {
+  default:
+    llvm_unreachable("Unimplemented");
+  case TRICORE::fixup_leg_mov_hi16_pcrel:
+    Type = ELF::R_ARM_MOVT_PREL;
+    break;
+  case TRICORE::fixup_leg_mov_lo16_pcrel:
+    Type = ELF::R_ARM_MOVW_PREL_NC;
+    break;
+  }
+  return Type;
 }
 
 std::unique_ptr<MCObjectTargetWriter> createTriCoreELFObjectWriter(uint8_t OSABI)
 {
   return std::make_unique<TriCoreELFObjectWriter>(OSABI);
 }
+} // namespace llvm
