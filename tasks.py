@@ -31,12 +31,12 @@ def check_arguments(target_name, path, build_type):
       help={"experimental_targets": "List of experimental targets to build, Strings separated by ';' (semicolon). Example: 'TriCore;RISCW;etc'. If not defined, the name of the target the environment was created for will be used.",
              "path": "Path to llvm source root. By default the current directory is considered",
              "build_type": "Possible values: Debug, Release. Default value: Release",
-             "clang": "Whether to build clang or not. Default value: True",
+             "llc_only": "Whether to only build llc or not. Default value: False",
              "upstream_targets": "List of upstream targets to build, Strings separated by ';' (semicolon). By default it is None. Example: Lanai;ARM;RISCV;etc",
-             "parallel_link_jobs": "Number of parallel link jobs. By default it is set to 2. WARNING: A high number of link jobs may cause your system to run out of memory and crash (Especially for Debug builds)."})
-def build_target(c, experimental_targets="", path=".", upstream_targets="", build_type="Release", clang=True, parallel_link_jobs=2):
+             "parallel_link_jobs": "Number of parallel link jobs. By default it is set to 2. Note: A high number of link jobs may cause your system to run out of memory and crash."})
+def build_target(c, experimental_targets="", path=".", upstream_targets="", build_type="Release", llc_only=False, parallel_link_jobs=2):
   """
-    Starts the build process for the target specified in the target_name parameter. If the target_name is not provided, `TriCore` will be used by default.
+    Starts the build process for the target specified in the target_name parameter. If the target_name is not provided, the name of the target the environment was created for will be used.
     By default, the build type is set to Release. If you want to build the target in Debug mode, you can specify the build type as Debug.
   """
   if experimental_targets == "":
@@ -59,9 +59,9 @@ def build_target(c, experimental_targets="", path=".", upstream_targets="", buil
     os.mkdir(f'{build_dir}')
 
   os.chdir(path)
-  enable_clang = "-DLLVM_ENABLE_PROJECTS=\"clang\"" if clang else ""
+  enable_clang_lld = "-DLLVM_ENABLE_PROJECTS=\"clang;lld\"" if not llc_only else ""
   enable_assertions = "-DLLVM_ENABLE_ASSERTIONS=ON" if build_type == "Debug" else "-DLLVM_ENABLE_ASSERTIONS=OFF"
-  cmake_command = f'cmake -S llvm -B {build_dir} -G Ninja {enable_clang} -DCMAKE_INSTALL_PREFIX={build_dir} {enable_assertions} -DCMAKE_BUILD_TYPE={build_type} -DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD="{experimental_targets}" -DLLVM_TARGETS_TO_BUILD="{upstream_targets}" -DLLVM_PARALLEL_LINK_JOBS={parallel_link_jobs} -DLLVM_USE_LINKER=lld'
+  cmake_command = f'cmake -S llvm -B {build_dir} -G Ninja {enable_clang_lld} -DCMAKE_INSTALL_PREFIX={build_dir} {enable_assertions} -DCMAKE_BUILD_TYPE={build_type} -DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD="{experimental_targets}" -DLLVM_TARGETS_TO_BUILD="{upstream_targets}" -DLLVM_PARALLEL_LINK_JOBS={parallel_link_jobs} -DLLVM_USE_LINKER=lld'
   
   info(f"Configuring {experimental_targets} ... ")
   info(f"Cmake command: {cmake_command}")
