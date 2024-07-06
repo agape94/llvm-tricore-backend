@@ -57,7 +57,6 @@ public:
 
 private:
   void customEmitInstruction(const MachineInstr *MI);
-  void emitCallInstruction(const MachineInstr *MI);
 };
 } // end of anonymous namespace
 
