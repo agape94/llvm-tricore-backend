@@ -80,8 +80,8 @@ class SB<bits<8> op1, dag outs, dag ins, string asmstr, list<dag> pattern>
 class SBC<bits<8> op1, dag outs, dag ins, string asmstr, list<dag> pattern>
         : T16<outs, ins, asmstr, pattern> {
 
-  bits<4> const4;
-  bits<4> disp4;
+  bits<4> const4 = 0;
+  bits<4> disp4 = 0;
 
   let Inst{15-12} = const4;
   let Inst{11-8} = disp4;
@@ -95,8 +95,8 @@ class SBC<bits<8> op1, dag outs, dag ins, string asmstr, list<dag> pattern>
 class SBR<bits<8> op1, dag outs, dag ins, string asmstr, list<dag> pattern>
         : T16<outs, ins, asmstr, pattern> {
 
-  bits<4> s2;
-  bits<4> disp4;
+  bits<4> s2 = 0;
+  bits<4> disp4 = 0;
 
   let Inst{15-12} = s2;
   let Inst{11-8} = disp4;
@@ -110,8 +110,8 @@ class SBR<bits<8> op1, dag outs, dag ins, string asmstr, list<dag> pattern>
 class SBRN<bits<8> op1, dag outs, dag ins, string asmstr, list<dag> pattern>
         : T16<outs, ins, asmstr, pattern> {
 
-  bits<4> n;
-  bits<4> disp4;
+  bits<4> n = 0;
+  bits<4> disp4 = 0;
 
   let Inst{15-12} = n;
   let Inst{11-8} = disp4;
@@ -125,7 +125,7 @@ class SBRN<bits<8> op1, dag outs, dag ins, string asmstr, list<dag> pattern>
 class SC<bits<8> op1, dag outs, dag ins, string asmstr, list<dag> pattern>
     : T16<outs, ins, asmstr, pattern> {
 
-  bits<8> const8;
+  bits<8> const8 = 0;
 
   let Inst{15-8} = const8;
   let Inst{7-0} = op1;
@@ -138,8 +138,8 @@ class SC<bits<8> op1, dag outs, dag ins, string asmstr, list<dag> pattern>
 class SLR<bits<8> op1, dag outs, dag ins, string asmstr, list<dag> pattern>
     : T16<outs, ins, asmstr, pattern> {
 
-  bits<4> s2;
-  bits<4> d;
+  bits<4> s2 = 0;
+  bits<4> d = 0;
 
   let Inst{15-12} = s2;
   let Inst{11-8} = d;
@@ -153,8 +153,8 @@ class SLR<bits<8> op1, dag outs, dag ins, string asmstr, list<dag> pattern>
 class SLRO<bits<8> op1, dag outs, dag ins, string asmstr, list<dag> pattern>
     : T16<outs, ins, asmstr, pattern> {
 
-  bits<4> off4;
-  bits<4> d;
+  bits<4> off4 = 0;
+  bits<4> d = 0;
 
   let Inst{15-12} = off4;
   let Inst{11-8} = d;
@@ -168,7 +168,7 @@ class SLRO<bits<8> op1, dag outs, dag ins, string asmstr, list<dag> pattern>
 class SR<bits<8> op1, bits<4> op2, dag outs, dag ins, string asmstr,
       list<dag> pattern> : T16<outs, ins, asmstr, pattern> {
 
-  bits<4> s1_d;
+  bits<4> s1_d = 0;
 
   let Inst{15-12} = op2;
   let Inst{11-8} = s1_d;
@@ -182,8 +182,8 @@ class SR<bits<8> op1, bits<4> op2, dag outs, dag ins, string asmstr,
 class SRC<bits<8> op1, dag outs, dag ins, string asmstr, list<dag> pattern>
     : T16<outs, ins, asmstr, pattern> {
 
-  bits<4> const4;
-  bits<4> s1_d;
+  bits<4> const4 = 0;
+  bits<4> s1_d = 0;
 
   let Inst{15-12} = const4;
   let Inst{11-8} = s1_d;
@@ -197,8 +197,8 @@ class SRC<bits<8> op1, dag outs, dag ins, string asmstr, list<dag> pattern>
 class SRO<bits<8> op1, dag outs, dag ins, string asmstr, list<dag> pattern>
     : T16<outs, ins, asmstr, pattern> {
 
-  bits<4> s2;
-  bits<4> off4;
+  bits<4> s2 = 0;
+  bits<4> off4 = 0;
 
   let Inst{15-12} = s2;
   let Inst{11-8} = off4;
@@ -212,8 +212,8 @@ class SRO<bits<8> op1, dag outs, dag ins, string asmstr, list<dag> pattern>
 class SRR<bits<8> op1, dag outs, dag ins, string asmstr, list<dag> pattern>
     : T16<outs, ins, asmstr, pattern> {
 
-  bits<4> s2;
-  bits<4> s1_d;
+  bits<4> s2 = 0;
+  bits<4> s1_d = 0;
 
   let Inst{15-12} = s2;
   let Inst{11-8} = s1_d;
@@ -231,9 +231,9 @@ class SRRS<bits<6> op1, dag outs, dag ins, string asmstr, list<dag> pattern>
   let Size = 2;
   field bits<16> SoftFail = 0;
 
-  bits<4> s2;
-  bits<4> s1_d;
-  bits<2> n;
+  bits<4> s2 = 0;
+  bits<4> s1_d = 0;
+  bits<2> n = 0;
 
   let Inst{15-12} = s2;
   let Inst{11-8} = s1_d;
@@ -248,8 +248,8 @@ class SRRS<bits<6> op1, dag outs, dag ins, string asmstr, list<dag> pattern>
 class SSR<bits<8> op1, dag outs, dag ins, string asmstr, list<dag> pattern>
     : T16<outs, ins, asmstr, pattern> {
 
-  bits<4> s2;
-  bits<4> s1;
+  bits<4> s2 = 0;
+  bits<4> s1 = 0;
 
   let Inst{15-12} = s2;
   let Inst{11-8} = s1;
@@ -263,8 +263,8 @@ class SSR<bits<8> op1, dag outs, dag ins, string asmstr, list<dag> pattern>
 class SSRO<bits<8> op1, dag outs, dag ins, string asmstr, list<dag> pattern>
     : T16<outs, ins, asmstr, pattern> {
 
-  bits<4> off4;
-  bits<4> s1;
+  bits<4> off4 = 0;
+  bits<4> s1 = 0;
 
   let Inst{15-12} = off4;
   let Inst{11-8} = s1;
@@ -279,8 +279,8 @@ class SSRO<bits<8> op1, dag outs, dag ins, string asmstr, list<dag> pattern>
 class ABS<bits<8> op1, bits<2> op2, dag outs, dag ins, string asmstr,
                  list<dag> pattern> : T32<outs, ins, asmstr, pattern> {
 
-  bits<18> off18;
-  bits<4> s1_d;
+  bits<18> off18 = 0;
+  bits<4> s1_d = 0;
 
   let Inst{31-28} = off18{9-6};
   let Inst{27-26} = op2;
@@ -299,9 +299,9 @@ class ABS<bits<8> op1, bits<2> op2, dag outs, dag ins, string asmstr,
 class ABSB<bits<8> op1, bits<2> op2, dag outs, dag ins, string asmstr,
                  list<dag> pattern> : T32<outs, ins, asmstr, pattern> {
 
-  bits<18> off18;
-  bits<1> b;
-  bits<3> bpos3;
+  bits<18> off18 = 0;
+  bits<1> b = 0;
+  bits<3> bpos3 = 0;
 
   let Inst{31-28} = off18{9-6};
   let Inst{27-26} = op2;
@@ -321,7 +321,7 @@ class ABSB<bits<8> op1, bits<2> op2, dag outs, dag ins, string asmstr,
 class B<bits<8> op1, dag outs, dag ins, string asmstr,
                  list<dag> pattern> : T32<outs, ins, asmstr, pattern> {
 
-  bits<24> disp24;
+  bits<24> disp24 = 0;
 
   let Inst{31-16} = disp24{15-0};
   let Inst{15-8} = disp24{23-16};
@@ -335,11 +335,11 @@ class B<bits<8> op1, dag outs, dag ins, string asmstr,
 class BIT<bits<8> op1, bits<2> op2, dag outs, dag ins, string asmstr,
                  list<dag> pattern> : T32<outs, ins, asmstr, pattern> {
 
-  bits<4> d;
-  bits<5> pos2;
-  bits<5> pos1;
-  bits<4> s2;
-  bits<4> s1;
+  bits<4> d = 0;
+  bits<5> pos2 = 0;
+  bits<5> pos1 = 0;
+  bits<4> s2 = 0;
+  bits<4> s1 = 0;
 
   let Inst{31-28} = d;
   let Inst{27-23} = pos2;
@@ -357,9 +357,9 @@ class BIT<bits<8> op1, bits<2> op2, dag outs, dag ins, string asmstr,
 class BO<bits<8> op1, bits<6> op2, dag outs, dag ins, string asmstr,
                  list<dag> pattern> : T32<outs, ins, asmstr, pattern> {
 
-  bits<10> off10;
-  bits<4> s2;
-  bits<4> s1_d;
+  bits<10> off10 = 0;
+  bits<4> s2 = 0;
+  bits<4> s1_d = 0;
 
   let Inst{31-28} = off10{9-6};
   let Inst{27-22} = op2;
@@ -377,9 +377,9 @@ class BO<bits<8> op1, bits<6> op2, dag outs, dag ins, string asmstr,
 class BOL<bits<8> op1, dag outs, dag ins, string asmstr,
                  list<dag> pattern> : T32<outs, ins, asmstr, pattern> {
 
-  bits<16> off16;
-  bits<4> s2;
-  bits<4> s1_d;
+  bits<16> off16 = 0;
+  bits<4> s2 = 0;
+  bits<4> s1_d = 0;
 
   let Inst{31-28} = off16{9-6};
   let Inst{27-22} = off16{15-10};
@@ -396,9 +396,9 @@ class BOL<bits<8> op1, dag outs, dag ins, string asmstr,
 class BRC<bits<8> op1, bits<1> op2, dag outs, dag ins, string asmstr,
                  list<dag> pattern> : T32<outs, ins, asmstr, pattern> {
 
-  bits<15> disp15;
-  bits<4> const4;
-  bits<4> s1;
+  bits<15> disp15 = 0;
+  bits<4> const4 = 0;
+  bits<4> s1 = 0;
 
   let Inst{31} = op2;
   let Inst{30-16} = disp15;
@@ -414,9 +414,9 @@ class BRC<bits<8> op1, bits<1> op2, dag outs, dag ins, string asmstr,
 class BRN<bits<7> op1, bits<1> op2, dag outs, dag ins, string asmstr,
                  list<dag> pattern> : T32<outs, ins, asmstr, pattern> {
 
-  bits<15> disp15;
-  bits<5> n;
-  bits<4> s1;
+  bits<15> disp15 = 0;
+  bits<5> n = 0;
+  bits<4> s1 = 0;
 
   let Inst{31} = op2;
   let Inst{30-16} = disp15;
@@ -433,9 +433,9 @@ class BRN<bits<7> op1, bits<1> op2, dag outs, dag ins, string asmstr,
 class BRR<bits<8> op1, bits<1> op2, dag outs, dag ins, string asmstr,
                  list<dag> pattern> : T32<outs, ins, asmstr, pattern> {
 
-  bits<15> disp15;
-  bits<4> s2;
-  bits<4> s1;
+  bits<15> disp15 = 0;
+  bits<4> s2 = 0;
+  bits<4> s1 = 0;
 
   let Inst{31} = op2;
   let Inst{30-16} = disp15;
@@ -451,9 +451,9 @@ class BRR<bits<8> op1, bits<1> op2, dag outs, dag ins, string asmstr,
 class RC<bits<8> op1, bits<7> op2, dag outs, dag ins, string asmstr,
                   list<dag> pattern> : T32<outs, ins, asmstr, pattern> {
 
-  bits<4> d;
-  bits<9> const9;
-  bits<4> s1;
+  bits<4> d = 0;
+  bits<9> const9 = 0;
+  bits<4> s1 = 0;
 
   let Inst{31-28} = d;
   let Inst{27-21} = op2;
@@ -469,11 +469,11 @@ class RC<bits<8> op1, bits<7> op2, dag outs, dag ins, string asmstr,
 class RCPW<bits<8> op1, bits<2> op2 , dag outs, dag ins, string asmstr,
                 list<dag> pattern> : T32<outs, ins, asmstr, pattern> {
 
-  bits<4> d;
-  bits<5> pos;
-  bits<5> width;
-  bits<4> const4;
-  bits<4> s1;
+  bits<4> d = 0;
+  bits<5> pos = 0;
+  bits<5> width = 0;
+  bits<4> const4 = 0;
+  bits<4> s1 = 0;
 
   let Inst{31-28} = d;
   let Inst{27-23} = pos;
@@ -491,10 +491,10 @@ class RCPW<bits<8> op1, bits<2> op2 , dag outs, dag ins, string asmstr,
 class RCR<bits<8> op1, bits<3> op2 , dag outs, dag ins, string asmstr,
                 list<dag> pattern> : T32<outs, ins, asmstr, pattern> {
 
-  bits<4> d;
-  bits<4> s3;
-  bits<9> const9;
-  bits<4> s1;
+  bits<4> d = 0;
+  bits<4> s3 = 0;
+  bits<9> const9 = 0;
+  bits<4> s1 = 0;
 
   let Inst{31-28} = d;
   let Inst{27-24} = s3;
@@ -511,10 +511,10 @@ class RCR<bits<8> op1, bits<3> op2 , dag outs, dag ins, string asmstr,
 class RCRR<bits<8> op1, bits<3> op2 , dag outs, dag ins, string asmstr,
                 list<dag> pattern> : T32<outs, ins, asmstr, pattern> {
 
-  bits<4> d;
-  bits<4> s3;
-  bits<4> const4;
-  bits<4> s1;
+  bits<4> d = 0;
+  bits<4> s3 = 0;
+  bits<4> const4 = 0;
+  bits<4> s1 = 0;
 
   let Inst{31-28} = d;
   let Inst{27-24} = s3;
@@ -532,11 +532,11 @@ class RCRR<bits<8> op1, bits<3> op2 , dag outs, dag ins, string asmstr,
 class RCRW<bits<8> op1, bits<3> op2 , dag outs, dag ins, string asmstr,
                 list<dag> pattern> : T32<outs, ins, asmstr, pattern> {
 
-  bits<4> d;
-  bits<4> s3;
-  bits<5> width;
-  bits<4> const4;
-  bits<4> s1;
+  bits<4> d = 0;
+  bits<4> s3 = 0;
+  bits<5> width = 0;
+  bits<4> const4 = 0;
+  bits<4> s1 = 0;
 
   let Inst{31-28} = d;
   let Inst{27-24} = s3;
@@ -554,9 +554,9 @@ class RCRW<bits<8> op1, bits<3> op2 , dag outs, dag ins, string asmstr,
 class RLC<bits<8> op1, dag outs, dag ins, string asmstr,
                  list<dag> pattern> : T32<outs, ins, asmstr, pattern> {
 
-  bits<4> d;
-  bits<16> const16;
-  bits<4> s1;
+  bits<4> d = 0;
+  bits<16> const16 = 0;
+  bits<4> s1 = 0;
 
   let Inst{31-28} = d;
   let Inst{27-12} = const16;
@@ -571,10 +571,10 @@ class RLC<bits<8> op1, dag outs, dag ins, string asmstr,
 class RR<bits<8> op1, bits<8> op2, dag outs, dag ins, string asmstr,
                  list<dag> pattern> : T32<outs, ins, asmstr, pattern> {
 
-  bits<4> d;
-  bits<2> n;
-  bits<4> s2;
-  bits<4> s1;
+  bits<4> d = 0;
+  bits<2> n = 0;
+  bits<4> s2 = 0;
+  bits<4> s1 = 0;
 
   let Inst{31-28} = d;
   let Inst{27-20} = op2;
@@ -592,10 +592,10 @@ class RR<bits<8> op1, bits<8> op2, dag outs, dag ins, string asmstr,
 class RR1<bits<8> op1, bits<10> op2, dag outs, dag ins, string asmstr,
                  list<dag> pattern> : T32<outs, ins, asmstr, pattern> {
 
-  bits<4> d;
-  bits<2> n;
-  bits<4> s2;
-  bits<4> s1;
+  bits<4> d = 0;
+  bits<2> n = 0;
+  bits<4> s2 = 0;
+  bits<4> s1 = 0;
 
 
   let Inst{31-28} = d;
@@ -613,9 +613,9 @@ class RR1<bits<8> op1, bits<10> op2, dag outs, dag ins, string asmstr,
 class RR2<bits<8> op1, bits<12> op2, dag outs, dag ins, string asmstr,
                  list<dag> pattern> : T32<outs, ins, asmstr, pattern> {
 
-  bits<4> d;
-  bits<4> s2;
-  bits<4> s1;
+  bits<4> d = 0;
+  bits<4> s2 = 0;
+  bits<4> s1 = 0;
 
   let Inst{31-28} = d;
   let Inst{27-16} = op2;
@@ -631,11 +631,11 @@ class RR2<bits<8> op1, bits<12> op2, dag outs, dag ins, string asmstr,
 class RRPW<bits<8> op1, bits<2> op2 , dag outs, dag ins, string asmstr,
                 list<dag> pattern> : T32<outs, ins, asmstr, pattern> {
 
-  bits<4> d;
-  bits<5> pos;
-  bits<5> width;
-  bits<4> s2;
-  bits<4> s1;
+  bits<4> d = 0;
+  bits<5> pos = 0;
+  bits<5> width = 0;
+  bits<4> s2 = 0;
+  bits<4> s1 = 0;
 
   let Inst{31-28} = d;
   let Inst{27-23} = pos;
@@ -653,11 +653,11 @@ class RRPW<bits<8> op1, bits<2> op2 , dag outs, dag ins, string asmstr,
 class RRR<bits<8> op1, bits<4> op2 , dag outs, dag ins, string asmstr,
                 list<dag> pattern> : T32<outs, ins, asmstr, pattern> {
 
-  bits<4> d;
-  bits<4> s3;
-  bits<2> n;
-  bits<4> s2;
-  bits<4> s1;
+  bits<4> d = 0;
+  bits<4> s3 = 0;
+  bits<2> n = 0;
+  bits<4> s2 = 0;
+  bits<4> s1 = 0;
 
   let Inst{31-28} = d;
   let Inst{27-24} = s3;
@@ -676,11 +676,11 @@ class RRR<bits<8> op1, bits<4> op2 , dag outs, dag ins, string asmstr,
 class RRR1<bits<8> op1, bits<6> op2 , dag outs, dag ins, string asmstr,
                 list<dag> pattern> : T32<outs, ins, asmstr, pattern> {
 
-  bits<4> d;
-  bits<4> s3;
-  bits<2> n;
-  bits<4> s2;
-  bits<4> s1;
+  bits<4> d = 0;
+  bits<4> s3 = 0;
+  bits<2> n = 0;
+  bits<4> s2 = 0;
+  bits<4> s1 = 0;
 
   let Inst{31-28} = d;
   let Inst{27-24} = s3;
@@ -698,10 +698,10 @@ class RRR1<bits<8> op1, bits<6> op2 , dag outs, dag ins, string asmstr,
 class RRR2<bits<8> op1, bits<8> op2 , dag outs, dag ins, string asmstr,
                 list<dag> pattern> : T32<outs, ins, asmstr, pattern> {
 
-  bits<4> s1;
-  bits<4> s2;
-  bits<4> s3;
-  bits<4> d;
+  bits<4> s1 = 0;
+  bits<4> s2 = 0;
+  bits<4> s3 = 0;
+  bits<4> d = 0;
 
   let Inst{31-28} = d;
   let Inst{27-24} = s3;
@@ -718,10 +718,10 @@ class RRR2<bits<8> op1, bits<8> op2 , dag outs, dag ins, string asmstr,
 class RRRR<bits<8> op1, bits<3> op2 , dag outs, dag ins, string asmstr,
                 list<dag> pattern> : T32<outs, ins, asmstr, pattern> {
 
-  bits<4> d;
-  bits<4> s3;
-  bits<4> s2;
-  bits<4> s1;
+  bits<4> d = 0;
+  bits<4> s3 = 0;
+  bits<4> s2 = 0;
+  bits<4> s1 = 0;
 
   let Inst{31-28} = d;
   let Inst{27-24} = s3;
@@ -739,11 +739,11 @@ class RRRR<bits<8> op1, bits<3> op2 , dag outs, dag ins, string asmstr,
 class RRRW<bits<8> op1, bits<3> op2 , dag outs, dag ins, string asmstr,
                 list<dag> pattern> : T32<outs, ins, asmstr, pattern> {
 
-  bits<4> d;
-  bits<4> s3;
-  bits<5> width;
-  bits<4> s2;
-  bits<4> s1;  
+  bits<4> d = 0;
+  bits<4> s3 = 0;
+  bits<5> width = 0;
+  bits<4> s2 = 0;
+  bits<4> s1 = 0;  
 
   let Inst{31-28} = d;
   let Inst{27-24} = s3;
@@ -761,7 +761,7 @@ class RRRW<bits<8> op1, bits<3> op2 , dag outs, dag ins, string asmstr,
 class SYS<bits<8> op1, bits<6> op2 , dag outs, dag ins, string asmstr,
                 list<dag> pattern> : T32<outs, ins, asmstr, pattern> {
 
-  bits<4> s1_d;
+  bits<4> s1_d = 0;
 
   let Inst{31-28} = 0;
   let Inst{27-22} = op2;
