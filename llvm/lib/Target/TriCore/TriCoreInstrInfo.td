@@ -260,9 +260,9 @@ let Defs = [PSW] in {
    def ABS : RR<0x0B, 0x1C, (outs DataRegs:$d),
                   (ins DataRegs:$s2), "abs $d, $s2",
                   [(set DataRegs:$d, (TriCoreAbs DataRegs:$s2))]>;
-   //def ABSb : RR<0x0B, 0x5C, (outs DataRegs:$d),
-   //               (ins DataRegs:$s2), "abs.b $d, $s2",
-   //               [(set DataRegs:$d, (TriCoreAbs DataRegs:$s2))]>;
+   def ABSb : RR<0x0B, 0x5C, (outs DataRegs:$d),
+                 (ins DataRegs:$s2), "abs.b $d, $s2",
+                 [(set DataRegs:$d, (TriCoreAbs DataRegs:$s2))]>;
 }
 
 // Arithmetic Instructions
