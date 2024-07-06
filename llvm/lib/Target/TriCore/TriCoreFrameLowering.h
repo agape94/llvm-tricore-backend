@@ -24,6 +24,7 @@ class TriCoreFrameLowering : public TargetFrameLowering {
 private:
   void determineFrameLayout(MachineFunction &MF) const;
   void replaceAdjDynAllocPseudo(MachineFunction &MF) const;
+  uint64_t computeStackSize(MachineFunction &MF) const;
 
 protected:
   const TriCoreSubtarget &STI;
@@ -34,6 +35,11 @@ public:
                             /*StackAlignment=*/Align(8),
                             /*LocalAreaOffset=*/0),
         STI(Subtarget) {}
+  
+  //! Stack slot size (4 bytes)
+  static int stackSlotSize() {
+    return 4;
+  }
 
   // emitProlog/emitEpilog - These methods insert prolog and epilog code into
   // the function.
@@ -44,7 +50,7 @@ public:
   eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
                                 MachineBasicBlock::iterator I) const override;
 
-  bool hasFP(const MachineFunction & /*MF*/) const override { return true; }
+  bool hasFP(const MachineFunction &MF) const override;
 
   void determineCalleeSaves(MachineFunction &MF, BitVector &SavedRegs,
                             RegScavenger *RS = nullptr) const override;
