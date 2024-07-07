@@ -85,7 +85,7 @@ public:
     Function::const_arg_iterator FI;
     FI = _mf.getFunction().arg_begin();
     std::advance(FI,curArg);
-    return FI->getType()->isPointerTy()? true : false;
+    return FI->getType()->isPointerTy();
   }
 
   bool isRegValid64Type (MachineFunction& _mf)
@@ -94,7 +94,7 @@ public:
     FI = _mf.getFunction().arg_begin();
     std::advance(FI,curArg);
     outs() << "size: " << FI->getType()->getScalarSizeInBits() << "\n";
-    return (FI->getType()->getScalarSizeInBits() == 64) ? true : false;
+    return (FI->getType()->getScalarSizeInBits() == 64);
   }
 
   void init()
@@ -260,9 +260,12 @@ SDValue TriCoreTargetLowering::LowerFormalArguments(
       *DAG.getContext());
 
   StringRef funName = DAG.getMachineFunction().getFunction().getName();
+  std::cout << "Function Name: " << funName.str() << "\n";
 
 //  DAG.getMachineFunction().getFunction()
+
   CCInfo.AnalyzeFormalArguments(Ins, CC_TriCore);
+  
 
   TCCH.init();
 
@@ -301,7 +304,7 @@ SDValue TriCoreTargetLowering::LowerFormalArguments(
       // If the argument is a pointer type then create a AddrRegsClass
       // Virtual register.
       if (TCCH.isRegValPtrType(MF)) {
-        //VA.setValVT(MVT(MVT::iPTR));
+        VA.setValVT(MVT::iPTR);
         VReg = RegInfo.createVirtualRegister(&TRICORE::AddrRegsRegClass);
         RegInfo.addLiveIn(VA.getLocReg(), VReg); //mark the register is inuse
         TCCH.saveRegRecord(funName, VA.getLocReg(), true);
