@@ -327,3 +327,22 @@ DebugLoc DL = MI.getDebugLoc();
   }
   }
 }
+void TriCoreInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
+                                  MachineBasicBlock::iterator I,
+                                  const DebugLoc &DL, MCRegister DestReg,
+                                  MCRegister SrcReg, bool KillSrc) const {
+  unsigned Opc;
+  if (TRICORE::DataRegsRegClass.contains(DestReg, SrcReg))
+    Opc = TRICORE::MOVrr;
+  else if (TRICORE::AddrRegsRegClass.contains(DestReg, SrcReg))
+    Opc = TRICORE::MOV_AArr;
+  else if (TRICORE::AddrRegsRegClass.contains(SrcReg) && TRICORE::DataRegsRegClass.contains(DestReg))
+    Opc = TRICORE::MOV_Arr;
+  else if (TRICORE::AddrRegsRegClass.contains(DestReg) && TRICORE::DataRegsRegClass.contains(SrcReg))
+    Opc = TRICORE::MOV_Drr;
+  else
+    llvm_unreachable("Impossible reg-to-reg copy");
+
+  BuildMI(MBB, I, DL, get(Opc), DestReg)
+    .addReg(SrcReg, getKillRegState(KillSrc));
+}
