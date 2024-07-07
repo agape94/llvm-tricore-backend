@@ -309,7 +309,7 @@ SDValue TriCoreTargetLowering::LowerFormalArguments(
         RegInfo.addLiveIn(VA.getLocReg(), VReg); //mark the register is inuse
         TCCH.saveRegRecord(funName, VA.getLocReg(), true);
         TCCH++;
-        ArgIn = DAG.getCopyFromReg(Chain, DL, VReg, MVT::iPTR);
+        ArgIn = DAG.getCopyFromReg(Chain, DL, VReg, RegVT, MVT::iPTR);
       }
       else if (TCCH.isRegValid64Type(MF))  {
         VReg = RegInfo.createVirtualRegister(&TRICORE::DataExtRegsRegClass);

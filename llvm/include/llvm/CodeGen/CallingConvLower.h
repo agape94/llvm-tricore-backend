@@ -139,6 +139,9 @@ public:
   bool isUpperBitsInLoc() const {
     return HTP == AExtUpper || HTP == SExtUpper || HTP == ZExtUpper;
   }
+
+  // Thesis
+  void setValVT(MVT valVT) {ValVT = valVT;}
 };
 
 /// Describes a register that needs to be forwarded from the prologue to a

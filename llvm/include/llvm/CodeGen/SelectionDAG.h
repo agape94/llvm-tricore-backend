@@ -796,6 +796,17 @@ public:
                    ArrayRef(Ops, Glue.getNode() ? 4 : 3));
   }
 
+  // Thesis
+  // This version of the getCopyFromReg method takes an extra operand, that
+  // tells whether the input value from the register is a pointer on a
+  // non-pointer. This has to be done, because LLVM casts all i32 and i32* value
+  // types into i32. Hence, the "pointness" is lost.
+  SDValue getCopyFromReg(SDValue Chain, const SDLoc &dl, unsigned Reg, EVT VT, int64_t argVT) {
+      SDVTList VTs = getVTList(VT, MVT::Other);
+      SDValue Ops[] = { Chain, getRegister(Reg, VT) };
+      return getNode(ISD::CopyFromReg, dl, VTs, Ops, argVT);
+  }
+
   SDValue getCopyFromReg(SDValue Chain, const SDLoc &dl, unsigned Reg, EVT VT) {
     SDVTList VTs = getVTList(VT, MVT::Other);
     SDValue Ops[] = { Chain, getRegister(Reg, VT) };
@@ -1090,11 +1101,17 @@ public:
   SDValue getNode(unsigned Opcode, const SDLoc &DL, ArrayRef<EVT> ResultTys,
                   ArrayRef<SDValue> Ops);
   SDValue getNode(unsigned Opcode, const SDLoc &DL, SDVTList VTList,
-                  ArrayRef<SDValue> Ops, const SDNodeFlags Flags);
+                  ArrayRef<SDValue> Ops, const SDNodeFlags Flags, int64_t argVT=MVT::INVALID_SIMPLE_VALUE_TYPE);
+  
 
   // Use flags from current flag inserter.
   SDValue getNode(unsigned Opcode, const SDLoc &DL, EVT VT,
                   ArrayRef<SDValue> Ops);
+  // Thesis
+  // Creates a specified SDNode that also take cares of the
+  // argument value type being passed.
+  SDValue getNode(unsigned Opcode, const SDLoc &DL, SDVTList VTList,
+                  ArrayRef<SDValue> Ops, int64_t argVT);
   SDValue getNode(unsigned Opcode, const SDLoc &DL, SDVTList VTList,
                   ArrayRef<SDValue> Ops);
   SDValue getNode(unsigned Opcode, const SDLoc &DL, EVT VT, SDValue Operand);

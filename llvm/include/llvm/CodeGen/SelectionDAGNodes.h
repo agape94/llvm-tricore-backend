@@ -152,6 +152,9 @@ public:
   SDValue() = default;
   SDValue(SDNode *node, unsigned resno);
 
+  // Thesis
+  SDValue(SDNode *node, unsigned resno, int64_t argVT);
+
   /// get the index which selects a specific result in the SDNode
   unsigned getResNo() const { return ResNo; }
 
@@ -616,6 +619,11 @@ private:
   /// List of uses for this SDNode.
   SDUse *UseList = nullptr;
 
+  // Thesis
+  // This defines the EVT type of the arguments passed when crrated using a
+  // CopyFromReg.
+  int64_t ArgType;
+
   /// The number of entries in the Operand/Value list.
   unsigned short NumOperands = 0;
   unsigned short NumValues;
@@ -841,6 +849,11 @@ public:
   /// traversing up the operands.
   /// NOTE: This is an expensive method. Use it carefully.
   bool hasPredecessor(const SDNode *N) const;
+
+  // Thesis
+  // Return the argument type
+  int64_t getArgType() { return ArgType; }
+  void setArgType(int64_t _argType) { ArgType = _argType;}
 
   /// Returns true if N is a predecessor of any node in Worklist. This
   /// helper keeps Visited and Worklist sets externally to allow unions
@@ -1082,12 +1095,22 @@ protected:
     return Ret;
   }
 
+  // Thesis
   /// Create an SDNode.
   ///
   /// SDNodes are created without any operands, and never own the operand
   /// storage. To add operands, see SelectionDAG::createOperands.
   SDNode(unsigned Opc, unsigned Order, DebugLoc dl, SDVTList VTs)
-      : NodeType(Opc), ValueList(VTs.VTs), NumValues(VTs.NumVTs),
+      : NodeType(Opc), ValueList(VTs.VTs), ArgType(MVT::INVALID_SIMPLE_VALUE_TYPE), NumValues(VTs.NumVTs),
+        IROrder(Order), debugLoc(std::move(dl)) {
+    memset(&RawSDNodeBits, 0, sizeof(RawSDNodeBits));
+    assert(debugLoc.hasTrivialDestructor() && "Expected trivial destructor");
+    assert(NumValues == VTs.NumVTs &&
+           "NumValues wasn't wide enough for its operands!");
+  }
+
+  SDNode(unsigned Opc, unsigned Order, DebugLoc dl, SDVTList VTs, int64_t argType)
+      : NodeType(Opc), ValueList(VTs.VTs), ArgType(argType), NumValues(VTs.NumVTs),
         IROrder(Order), debugLoc(std::move(dl)) {
     memset(&RawSDNodeBits, 0, sizeof(RawSDNodeBits));
     assert(debugLoc.hasTrivialDestructor() && "Expected trivial destructor");
@@ -1137,6 +1160,18 @@ inline SDValue::SDValue(SDNode *node, unsigned resno)
   assert((!Node || !ResNo || ResNo < Node->getNumValues()) &&
          "Invalid result number for the given node!");
   assert(ResNo < -2U && "Cannot use result numbers reserved for DenseMaps.");
+}
+
+// Thesis
+inline SDValue::SDValue(SDNode *node, unsigned resno, int64_t argVT)
+    : Node(node), ResNo(resno) {
+  // Explicitly check for !ResNo to avoid use-after-free, because there are
+  // callers that use SDValue(N, 0) with a deleted N to indicate successful
+  // combines.
+  assert((!Node || !ResNo || ResNo < Node->getNumValues()) &&
+         "Invalid result number for the given node!");
+  assert(ResNo < -2U && "Cannot use result numbers reserved for DenseMaps.");
+  Node->setArgType(argVT);
 }
 
 inline unsigned SDValue::getOpcode() const {

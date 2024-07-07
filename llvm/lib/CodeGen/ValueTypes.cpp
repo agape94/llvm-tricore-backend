@@ -174,6 +174,8 @@ std::string EVT::getEVTString() const {
   case MVT::Untyped:   return "Untyped";
   case MVT::funcref:   return "funcref";
   case MVT::externref: return "externref";
+  // Thesis
+  case MVT::iPTR: return "i32*";
   case MVT::aarch64svcount:
     return "aarch64svcount";
   case MVT::spirvbuiltin:

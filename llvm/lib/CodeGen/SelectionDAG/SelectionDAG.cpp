@@ -9614,7 +9614,15 @@ SDValue SelectionDAG::getNode(unsigned Opcode, const SDLoc &DL, SDVTList VTList,
 }
 
 SDValue SelectionDAG::getNode(unsigned Opcode, const SDLoc &DL, SDVTList VTList,
-                              ArrayRef<SDValue> Ops, const SDNodeFlags Flags) {
+                              ArrayRef<SDValue> Ops, int64_t argVT) {
+  SDNodeFlags Flags;
+  if (Inserter)
+    Flags = Inserter->getFlags();
+  return getNode(Opcode, DL, VTList, Ops, Flags, argVT);
+}
+
+SDValue SelectionDAG::getNode(unsigned Opcode, const SDLoc &DL, SDVTList VTList,
+                              ArrayRef<SDValue> Ops, const SDNodeFlags Flags, int64_t argVT) {
   if (VTList.NumVTs == 1)
     return getNode(Opcode, DL, VTList.VTs[0], Ops, Flags);
 
@@ -9740,7 +9748,16 @@ SDValue SelectionDAG::getNode(unsigned Opcode, const SDLoc &DL, SDVTList VTList,
     createOperands(N, Ops);
     CSEMap.InsertNode(N, IP);
   } else {
-    N = newSDNode<SDNode>(Opcode, DL.getIROrder(), DL.getDebugLoc(), VTList);
+    unsigned NumOps = Ops.size();
+    // Thesis
+    if (NumOps == 2 && argVT != MVT::INVALID_SIMPLE_VALUE_TYPE)
+    {
+      N = newSDNode<SDNode>(Opcode, DL.getIROrder(), DL.getDebugLoc(), VTList, argVT);
+    }
+    else
+    {
+      N = newSDNode<SDNode>(Opcode, DL.getIROrder(), DL.getDebugLoc(), VTList);
+    }
     createOperands(N, Ops);
   }
 
