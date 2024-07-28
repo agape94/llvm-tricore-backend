@@ -1,5 +1,5 @@
-/* Benchmarks
-   Copyright (C) 2001 Free Software Foundation, Inc.
+/* param.h - 32K Board specific parameters
+   Copyright (C) 2002 Free Software Foundation, Inc.
    Written by Stephane Carrez (stcarrez@worldnet.fr)    
 
 This file is free software; you can redistribute it and/or modify it
@@ -25,51 +25,25 @@ along with this program; see the file COPYING.  If not, write to
 the Free Software Foundation, 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-#ifndef _BENCHS_H
-#define _BENCHS_H
+#ifndef _M68HC11_ARCH_32K_PARAM_H
+#define _M68HC11_ARCH_32K_PARAM_H
 
+/* Generic 32K board.  */
+#define M6811_ARCH_32K
 
-#include "param.h"
-#include "ports.h"
+#undef M6811_DEF_BAUD
+#define M6811_DEF_BAUD 0x30            /* 9600 baud.  */
 
-struct bench
-{
-  unsigned short b_start;
+#undef RAM_SIZE
+#define RAM_SIZE       32768           /* 32Kb of memory.  */
 
-  unsigned short b_stop;
+#undef ROM_SIZE
+#define ROM_SIZE       32768           /* 32Kb of rom.  */
 
-  unsigned short b_correction;
+#undef DATA_SIZE
+#define DATA_SIZE      (0x8000-0x1040) /* Data section size.  */
 
-  unsigned short b_delta;
-};
-typedef struct bench bench_t;
-
-extern void
-bench_init (bench_t *b);
-
-extern void bench_start (bench_t *b);
-
-extern __inline__ void
-bench_start (bench_t *b)
-{
-  b->b_start = 0;
-  // b->b_start = get_timer_counter ();
-}
-
-extern void bench_stop (bench_t *b);
-
-extern __inline__ void
-bench_stop (bench_t *b)
-{
-  b->b_stop = 100;
-  // b->b_stop = get_timer_counter ();
-}
-
-extern void
-bench_report (bench_t *b, const char *msg, ...);
-
-
-extern void
-bench_empty (bench_t *b);
+#undef TEXT_SIZE
+#define TEXT_SIZE      ROM_SIZE        /* Text section size.  */
 
 #endif

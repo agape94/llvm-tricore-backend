@@ -79,7 +79,9 @@ MCOperand TriCoreMCInstLower::LowerSymbolOperand(const MachineOperand &MO,
     return MCOperand::createExpr(MCSym);
   }
 
-  return MCOperand::createExpr(MCSym);
+  const MCConstantExpr *OffsetExpr = MCConstantExpr::create(Offset, Ctx);
+  const MCBinaryExpr *Add = MCBinaryExpr::createAdd(MCSym, OffsetExpr, Ctx);
+  return MCOperand::createExpr(Add);
 }
 
 MCOperand TriCoreMCInstLower::LowerOperand(const MachineOperand &MO,

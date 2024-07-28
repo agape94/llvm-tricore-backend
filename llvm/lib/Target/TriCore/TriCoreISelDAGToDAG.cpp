@@ -160,14 +160,13 @@ void TriCoreDAGToDAGISel::Select(SDNode *Node) {
           return;
     }
     case ISD::STORE: {
-      ptyType = false;
-      ptyType = (Node->getOperand(1).getValueType() == MVT::iPTR) ?
-          true : false;
+      ptyType = Node->getOperand(1).getValueType() == MVT::iPTR;
       break;
     }
   }
   SelectCode(Node);
 }
+
 bool TriCoreDAGToDAGISel::ptyType = false;
 bool TriCoreDAGToDAGISel::isPointer() { return ptyType; }
 
@@ -411,10 +410,6 @@ void TriCoreDAGToDAGISel::SelectConstant(SDNode *Node)
   }
 }
 bool TriCoreDAGToDAGISel::MatchAddress(SDValue N, TriCoreISelAddressMode &AM) {
-  // DEBUG(errs() << "MatchAddress: "; AM.dump());
-  // DEBUG(errs() << "Node: "; N.dump());
-
-
   switch (N.getOpcode()) {
   default: break;
   case ISD::Constant: {
@@ -482,24 +477,14 @@ bool TriCoreDAGToDAGISel::MatchWrapper(SDValue N, TriCoreISelAddressMode &AM) {
   // If the addressing mode already has a symbol as the displacement, we can
   // never match another symbol.
   if (AM.hasSymbolicDisplacement()) {
-    // DEBUG(errs().changeColor(raw_ostream::YELLOW,1);
-    // errs() <<"hasSymbolicDisplacement\n";
-    // N.dump();
-    // errs().changeColor(raw_ostream::WHITE,0); );
     return true;
   }
 
   SDValue N0 = N.getOperand(0);
 
-  // DEBUG(errs() << "Match Wrapper N => ";
-  // N.dump();
-  // errs()<< "N0 => "; N0.dump(); );
-
   if (GlobalAddressSDNode *G = dyn_cast<GlobalAddressSDNode>(N0)) {
     AM.GV = G->getGlobal();
     AM.Disp += G->getOffset();
-    // DEBUG(errs() << "MatchWrapper->Displacement: " << AM.Disp );
-    //AM.SymbolFlags = G->getTargetFlags();
   }
   return false;
 }

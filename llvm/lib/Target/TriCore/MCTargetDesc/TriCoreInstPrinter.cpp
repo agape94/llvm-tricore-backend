@@ -52,7 +52,19 @@ static void printExpr(const MCExpr *Expr, const MCAsmInfo *MAI,
     default:                                 llvm_unreachable("Invalid kind!");
     case MCSymbolRefExpr::VK_None:           break;
     case MCSymbolRefExpr::VK_TRICORE_HI_OFFSET:    OS << "hi:";     break;
-    case MCSymbolRefExpr::VK_TRICORE_LO_OFFSET:    OS << "lo:";     break;
+    case MCSymbolRefExpr::VK_TRICORE_LO_OFFSET:   
+    {
+      OS << "lo:";
+      OS << SRE->getSymbol();
+      if (Offset) {
+        if (Offset > 0) {
+          OS << '+';
+        }
+        OS << Offset;
+      }
+      break;
+    }
+      
   }
 
   SRE->getSymbol().print(OS, MAI);
@@ -91,6 +103,28 @@ void TriCoreInstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
 
   assert(Op.isExpr() && "unknown operand kind in printOperand");
   printExpr(Op.getExpr(), &MAI, OS);
+}
+
+void TriCoreInstPrinter::printCCOperand(const MCInst *MI, unsigned OpNo,
+                                       raw_ostream &OS) {
+  unsigned CC = MI->getOperand(OpNo).getImm();
+
+  switch (CC) {
+  default:
+   llvm_unreachable("Unsupported CC code");
+  case 0:
+   OS << "eq";
+   break;
+  case 1:
+   OS << "ne";
+   break;
+  case 3:
+   OS << "lt";
+   break;
+  case 2:
+   OS << "ge";
+   break;
+  }
 }
 
 void TriCoreInstPrinter::printRegName(raw_ostream &OS, MCRegister Reg) const {

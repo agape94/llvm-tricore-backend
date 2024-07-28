@@ -276,6 +276,7 @@ SDValue TriCoreTargetLowering::LowerFormalArguments(
     SDValue ArgIn;
     unsigned AddrReg;
     if (TCCH.isRegValPtrType(MF)) {
+      outs() << "XXXXXXXXX Pointer Type\n";
       //Is there any address register available?
       AddrReg = TCCH.getNextAddrRegs(funName);
       if (AddrReg != UNKNOWN_REG)
@@ -399,6 +400,12 @@ TriCoreTargetLowering::TriCoreTargetLowering(const TargetMachine &TM,
 
   setStackPointerRegisterToSaveRestore(TRICORE::A10);
 
+  // Compute derived properties from the register classes
+  TRI = STI.getRegisterInfo();
+  computeRegisterProperties(TRI);
+
+  setSchedulingPreference(Sched::Source);
+
   // Nodes that require custom lowering
   setOperationAction(ISD::GlobalAddress, MVT::i32,   Custom);
   setOperationAction(ISD::BR_CC,         MVT::i32,   Custom);
@@ -414,14 +421,9 @@ TriCoreTargetLowering::TriCoreTargetLowering(const TargetMachine &TM,
   //for (MVT VT : MVT::integer_valuetypes())
   //setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i16,   Custom);
 
-  // Compute derived properties from the register classes
-  TRI = STI.getRegisterInfo();
-  computeRegisterProperties(TRI);
-
-  setSchedulingPreference(Sched::Source);
 
   // Booleans always contain 0 or 1.
-  setBooleanContents(ZeroOrOneBooleanContent);
+  // setBooleanContents(ZeroOrOneBooleanContent);
 }
 
 // TriCore call implementation
@@ -440,10 +442,9 @@ SDValue TriCoreTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
 
   CLI.IsTailCall = false;
 
-  //if (isVarArg) {
-    //llvm_unreachable("Unimplemented");
-  //}
-
+  if (isVarArg) {
+    llvm_unreachable("Unimplemented. Variable number of arguments not supported!");
+  }
 
   // Analyze operands of the call, assigning locations to each operand.
   SmallVector<CCValAssign, 16> ArgLocs;
@@ -483,7 +484,7 @@ SDValue TriCoreTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
       RegsToPass.push_back(
               std::make_pair(VA.getLocReg(), Arg));
       TCCH.incrArgPos();
-      //RegsToPass.push_back(std::make_pair(VA.getLocReg(), Arg));
+      RegsToPass.push_back(std::make_pair(VA.getLocReg(), Arg));
       continue;
     }
     assert(VA.isMemLoc() &&
@@ -519,12 +520,12 @@ SDValue TriCoreTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   }
 
   // Add a register mask operand representing the call-preserved registers.
-  //const uint32_t *Mask;
-  //const TargetRegisterInfo *TRI = DAG.getSubtarget().getRegisterInfo();
-  //Mask = TRI->getCallPreservedMask(DAG.getMachineFunction(), CallConv);
+  // const uint32_t *Mask;
+  // const TargetRegisterInfo *TRI = DAG.getSubtarget().getRegisterInfo();
+  // Mask = TRI->getCallPreservedMask(DAG.getMachineFunction(), CallConv);
 
-  //assert(Mask && "Missing call preserved mask for calling convention");
-  //Ops.push_back(DAG.getRegisterMask(Mask));
+  // assert(Mask && "Missing call preserved mask for calling convention");
+  // Ops.push_back(DAG.getRegisterMask(Mask));
 
   if (InFlag.getNode()) {
     Ops.push_back(InFlag);

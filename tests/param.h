@@ -1,5 +1,5 @@
-/* Benchmarks
-   Copyright (C) 2001 Free Software Foundation, Inc.
+/* param.h - Board specific parameters
+   Copyright (C) 2000, 2002 Free Software Foundation, Inc.
    Written by Stephane Carrez (stcarrez@worldnet.fr)    
 
 This file is free software; you can redistribute it and/or modify it
@@ -25,51 +25,26 @@ along with this program; see the file COPYING.  If not, write to
 the Free Software Foundation, 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-#ifndef _BENCHS_H
-#define _BENCHS_H
+#ifndef _SYS_PARAM_H
+#define _SYS_PARAM_H
 
+#define ATTRIBUTE_UNUSED __attribute__((unused))
 
-#include "param.h"
-#include "ports.h"
+#ifdef mc6811
+# include <asm-m68hc11/param.h>
+#endif
 
-struct bench
-{
-  unsigned short b_start;
+#ifdef mc6812
+# include <asm-m68hc12/param.h>
+#endif
 
-  unsigned short b_stop;
+#include "arch/param.h"
 
-  unsigned short b_correction;
-
-  unsigned short b_delta;
-};
-typedef struct bench bench_t;
-
-extern void
-bench_init (bench_t *b);
-
-extern void bench_start (bench_t *b);
-
-extern __inline__ void
-bench_start (bench_t *b)
-{
-  b->b_start = 0;
-  // b->b_start = get_timer_counter ();
-}
-
-extern void bench_stop (bench_t *b);
-
-extern __inline__ void
-bench_stop (bench_t *b)
-{
-  b->b_stop = 100;
-  // b->b_stop = get_timer_counter ();
-}
-
-extern void
-bench_report (bench_t *b, const char *msg, ...);
-
-
-extern void
-bench_empty (bench_t *b);
+#ifndef PAGE0_ATTRIBUTE
+#if 0
+# define PAGE0_ATTRIBUTE __attribute__((section(".page0")))
+#endif
+# define PAGE0_ATTRIBUTE
+#endif
 
 #endif

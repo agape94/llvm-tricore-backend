@@ -47,7 +47,7 @@ public:
   const MCFixupKindInfo &getFixupKindInfo(MCFixupKind Kind) const override;
 
   unsigned getNumFixupKinds() const override {
-    return 0;
+    return TRICORE::NumTargetFixupKinds;
   }
 
   bool writeNopData(raw_ostream &OS, uint64_t Count,
