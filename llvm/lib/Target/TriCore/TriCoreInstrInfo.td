@@ -836,6 +836,9 @@ let Predicates = [isnotPointer] in {
  def : Pat<(truncstorei8 DataExtRegs:$d, addr:$memri),
      (ST_Wbo (ANDrc (EXTRACT_SUBREG DataExtRegs:$d, subreg_even),
      (i32 255)), addr:$memri)>;
+ def : Pat<(truncstorei16 DataExtRegs:$d, addr:$memri),
+     (ST_Wbo (ANDrr (EXTRACT_SUBREG DataExtRegs:$d, subreg_even),
+     (MOV_Urlc 65535)), addr:$memri)>;
 } // let Predicates = [isnotPointer]
 
 
