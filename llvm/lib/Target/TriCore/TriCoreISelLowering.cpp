@@ -101,7 +101,7 @@ public:
   {
     curPos = 0;
     curArg = 0;
-    //regRecord.clear();
+    regRecord.clear();
   }
   
   void setCurPos(uint32_t curPos = 0) {this->curPos = curPos;}
