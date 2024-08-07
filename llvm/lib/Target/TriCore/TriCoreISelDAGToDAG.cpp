@@ -151,12 +151,13 @@ void TriCoreDAGToDAGISel::Select(SDNode *Node) {
       int FI = cast<FrameIndexSDNode>(Node)->getIndex();
       SDValue TFI = CurDAG->getTargetFrameIndex(FI, MVT::i32);
       if (Node->hasOneUse()) {
-        ReplaceNode(Node, CurDAG->SelectNodeTo(Node, TRICORE::ADDrc, MVT::i32, TFI,
-            CurDAG->getTargetConstant(0, dl, MVT::i32)));
+        CurDAG->SelectNodeTo(Node, TRICORE::ADDrc, MVT::i32, TFI, CurDAG->getTargetConstant(0, dl, MVT::i32));
+            
             return;
       }
       ReplaceNode(Node, CurDAG->getMachineNode(TRICORE::ADDrc, dl, MVT::i32, TFI,
           CurDAG->getTargetConstant(0, dl, MVT::i32)));
+
           return;
     }
     case ISD::STORE: {
