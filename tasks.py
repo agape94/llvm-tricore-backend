@@ -15,26 +15,24 @@ def error (msg):
 
 # ==================================================================================================================
 
-def check_arguments(target_name, path, build_type):
+def check_arguments(target_name, path, debug, release):
   if target_name is None or not target_name[0].isupper():
     raise ValueError(f"Please provide a valid target name (upper case and camel case when applicable)")
   
   if not os.path.exists(path) or len(os.listdir(path)) == 0:
     raise ValueError(f"{path} is empty or doesn't exist")
-  
-  if not build_type in {"Debug", "Release"}:
-    raise ValueError(f"Please provide a valid build type (Debug or Release)")
 
 # ==================================================================================================================
 
 @task(aliases = ['b'], 
       help={"experimental_targets": "List of experimental targets to build, Strings separated by ';' (semicolon). Example: 'TriCore;RISCW;etc'. If not defined, the name of the target the environment was created for will be used.",
              "path": "Path to llvm source root. By default the current directory is considered",
-             "build_type": "Possible values: Debug, Release. Default value: Release",
+             "debug": "Build Debug version of the target. Default value: False",
+             "release": "Build Release version of the target. Default value: True",
              "llc_only": "Whether to only build llc or not. Default value: False",
              "upstream_targets": "List of upstream targets to build, Strings separated by ';' (semicolon). By default it is None. Example: Lanai;ARM;RISCV;etc",
              "parallel_link_jobs": "Number of parallel link jobs. By default it is set to 2. Note: A high number of link jobs may cause your system to run out of memory and crash."})
-def build_target(c, experimental_targets="", path=".", upstream_targets="", build_type="Release", llc_only=False, parallel_link_jobs=2):
+def build_target(c, experimental_targets="", path=".", upstream_targets="", debug=False, release=True, llc_only=False, parallel_link_jobs=2):
   """
     Starts the build process for the target specified in the target_name parameter. If the target_name is not provided, the name of the target the environment was created for will be used.
     By default, the build type is set to Release. If you want to build the target in Debug mode, you can specify the build type as Debug.
@@ -43,8 +41,14 @@ def build_target(c, experimental_targets="", path=".", upstream_targets="", buil
     with open(os.path.join(os.getcwd(), ".experimental_targets_to_build"), "r") as f:
       experimental_targets = f.read().strip()
   
-  check_arguments(experimental_targets, path, build_type)
+  if debug:
+    release = False
+  else:
+    release = True
 
+  check_arguments(experimental_targets, path, debug, release)
+
+  build_type = "Debug" if debug else "Release"
   build_dir_name = f'build_{experimental_targets.lower()}_{build_type.lower()}'
   build_dir = os.path.join(path, build_dir_name)
   
@@ -60,7 +64,7 @@ def build_target(c, experimental_targets="", path=".", upstream_targets="", buil
 
   os.chdir(path)
   enable_clang_lld = "-DLLVM_ENABLE_PROJECTS=\"clang;lld\"" if not llc_only else ""
-  enable_assertions = "-DLLVM_ENABLE_ASSERTIONS=ON" if build_type == "Debug" else "-DLLVM_ENABLE_ASSERTIONS=OFF"
+  enable_assertions = "-DLLVM_ENABLE_ASSERTIONS=ON" # if build_type == "Debug" else "-DLLVM_ENABLE_ASSERTIONS=OFF"
   cmake_command = f'cmake -S llvm -B {build_dir} -G Ninja {enable_clang_lld} -DCMAKE_INSTALL_PREFIX={build_dir} {enable_assertions} -DCMAKE_BUILD_TYPE={build_type} -DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD="{experimental_targets}" -DLLVM_TARGETS_TO_BUILD="{upstream_targets}" -DLLVM_PARALLEL_LINK_JOBS={parallel_link_jobs} -DLLVM_USE_LINKER=lld'
   
   info(f"Configuring {experimental_targets} ... ")
