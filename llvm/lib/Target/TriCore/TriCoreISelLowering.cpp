@@ -235,6 +235,10 @@ LowerOperation(SDValue Op, SelectionDAG &DAG) const {
     case ISD::SHL:
     case ISD::SRL:
     case ISD::SRA:                return LowerShifts(Op, DAG);
+
+    case ISD::MULHS:
+    case ISD::MULHU:
+      return LowerMulHigh(Op, DAG);
     //case ISD::SIGN_EXTEND:        return LowerSIGN_EXTEND(Op, DAG);
     //case ISD::SIGN_EXTEND_INREG:  return LowerSIGN_EXTEND_INREG(Op, DAG);
     default:
@@ -415,6 +419,24 @@ TriCoreTargetLowering::TriCoreTargetLowering(const TargetMachine &TM,
   setOperationAction(ISD::SHL,           MVT::i32,   Custom);
   setOperationAction(ISD::SRL,           MVT::i32,   Custom);
   setOperationAction(ISD::SRA,           MVT::i32,   Custom);
+
+  setOperationAction({ISD::MUL, ISD::SDIV, ISD::UDIV}, MVT::i8, Promote);
+  setOperationAction({ISD::MUL, ISD::SDIV, ISD::UDIV}, MVT::i16, Promote);
+  setOperationAction({ISD::MUL, ISD::SDIV, ISD::UDIV}, MVT::i32, Legal);
+  // setOperationAction(ISD::MUL, MVT::i64, LibCall);
+
+  for (auto OP :
+       {ISD::SREM, ISD::UREM, ISD::UDIVREM, ISD::SDIVREM,
+        ISD::MULHS, ISD::MULHU, ISD::UMUL_LOHI, ISD::SMUL_LOHI}) {
+    setOperationAction(OP, MVT::i8, Custom);
+    setOperationAction(OP, MVT::i16, Custom);
+    setOperationAction(OP, MVT::i32, Custom);
+  }
+
+  for (auto OP : {ISD::UMUL_LOHI, ISD::SMUL_LOHI}) {
+    setOperationAction(OP, MVT::i8, Expand);
+    setOperationAction(OP, MVT::i16, Expand);
+  }
   //setOperationAction(ISD::SRA,           MVT::i16,   Custom);
   //setOperationAction(ISD::SIGN_EXTEND,   MVT::i16,   Expand);
 
@@ -453,10 +475,11 @@ SDValue TriCoreTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   CCInfo.AnalyzeCallOperands(Outs, CC_TriCore);
 
     // Get the size of the outgoing arguments stack space requirement.
-  const unsigned NumBytes = CCInfo.getStackSize();
+  // const unsigned NumBytes = CCInfo.getStackSize();
+  const unsigned NumBytes = CCInfo.getAlignedCallFrameSize();
 
-  Chain =
-      DAG.getCALLSEQ_START(Chain, NumBytes, 0, Loc);
+  Chain = DAG.getCALLSEQ_START(Chain, NumBytes, NumBytes, Loc);
+  // Chain = DAG.getCALLSEQ_START(Chain, DAG.getIntPtrConstant(NumBytes, Loc, true), Loc);
 
   SmallVector<std::pair<unsigned, SDValue>, 8> RegsToPass;
   SmallVector<SDValue, 8> MemOpChains;
@@ -520,12 +543,12 @@ SDValue TriCoreTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   }
 
   // Add a register mask operand representing the call-preserved registers.
-  // const uint32_t *Mask;
-  // const TargetRegisterInfo *TRI = DAG.getSubtarget().getRegisterInfo();
-  // Mask = TRI->getCallPreservedMask(DAG.getMachineFunction(), CallConv);
+  const uint32_t *Mask;
+  const TargetRegisterInfo *TRI = DAG.getSubtarget().getRegisterInfo();
+  Mask = TRI->getCallPreservedMask(DAG.getMachineFunction(), CallConv);
 
-  // assert(Mask && "Missing call preserved mask for calling convention");
-  // Ops.push_back(DAG.getRegisterMask(Mask));
+  assert(Mask && "Missing call preserved mask for calling convention");
+  Ops.push_back(DAG.getRegisterMask(Mask));
 
   if (InFlag.getNode()) {
     Ops.push_back(InFlag);
@@ -556,7 +579,6 @@ SDValue TriCoreTargetLowering::LowerCallResult(
     const SmallVectorImpl<ISD::InputArg> &Ins, SDLoc dl, SelectionDAG &DAG,
     SmallVectorImpl<SDValue> &InVals) const {
   assert(!isVarArg && "Unsupported");
-  //outs()<<"LowerCallResult\n";
   // Assign locations to each value returned by this call.
   SmallVector<CCValAssign, 16> RVLocs;
   CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(), RVLocs,
@@ -564,7 +586,6 @@ SDValue TriCoreTargetLowering::LowerCallResult(
 
   Type* t= DAG.getMachineFunction().getFunction().getReturnType();
   // t->dump();
-  outs() << "LowerCallResult IsPointer: " << t->isPointerTy() << "\n";
 
   CCInfo.AnalyzeCallResult(Ins, RetCC_TriCore);
   //DAG.getMachineFunction().getFunction()->get
@@ -572,7 +593,9 @@ SDValue TriCoreTargetLowering::LowerCallResult(
   for (auto &Loc : RVLocs) {
 
     if (t->isPointerTy())
+    {
       Loc.convertToReg(TRICORE::A2);
+    }
 
     Chain = DAG.getCopyFromReg(Chain, dl, Loc.getLocReg(), Loc.getValVT(),
                                InGlue).getValue(1);
@@ -649,6 +672,48 @@ SDValue TriCoreTargetLowering::LowerReturn(SDValue Chain, CallingConv::ID CallCo
   }
 
   return DAG.getNode(TRICOREISD::RET_FLAG, DL, MVT::Other, RetOps);
+}
+
+SDValue TriCoreTargetLowering::LowerMulHigh(SDValue Op,
+                                           SelectionDAG &DAG) const {
+  // unsigned Opc = Op.getOpcode();
+  // SDNode* N = Op.getNode();
+  // SDValue LHS = N->getOperand(0);
+  // SDValue RHS = N->getOperand(1);
+  // // Promote both operands to i32
+  // if (LHS.getValueType() != MVT::i32 && LHS.getValueType() != MVT::i64) {
+  //   LHS = DAG.getNode(ISD::SIGN_EXTEND, SDLoc(N), MVT::i32, LHS);
+  // }
+  
+  // if (RHS.getValueType() != MVT::i32 && RHS.getValueType() != MVT::i64) {
+  //   RHS = DAG.getNode(ISD::SIGN_EXTEND, SDLoc(N), MVT::i32, RHS);
+  // }
+
+  // // Check if signed or unsigned
+  // bool isSigned = Opc == ISD::MULHS;
+  
+  // // Place both operands in a register if not yet a register
+  // if (LHS.getOpcode() != ISD::CopyToReg) {
+  //   LHS = DAG.getCopyToReg(DAG.getEntryNode(), SDLoc(N), LHS, UNKNOWN_REG);
+  // }
+  // if (RHS != ISD::CopyToReg) {
+  //   RHS = DAG.getCopyToReg(DAG.getEntryNode(), SDLoc(N), RHS, UNKNOWN_REG);
+  // }
+
+  // SDLoc dl(N);
+  // SDValue Result = DAG.getNode(Opc, dl, MVT::i32, LHS, RHS);
+  EVT VT = Op.getValueType();
+  SDLoc DL(Op);
+
+  // Perform the multiplication and get the high part.
+  // This is a simplified example; the actual code will depend on the TriCore architecture.
+  SDValue Res;
+  Res = DAG.getNode(ISD::MUL, DL, VT, Op.getOperand(0), Op.getOperand(1));
+
+  // The high part is the result shifted right by the size of the low part.
+  SDValue ResHi = DAG.getNode(ISD::SRL, DL, VT, Res, DAG.getConstant(VT.getSizeInBits(), DL, VT));
+
+  return ResHi;
 }
 
 SDValue TriCoreTargetLowering::LowerShifts(SDValue Op,
@@ -901,7 +966,6 @@ SDValue TriCoreTargetLowering::LowerSELECT_CC(SDValue Op,
 
 SDValue TriCoreTargetLowering::LowerGlobalAddress(SDValue Op, SelectionDAG& DAG) const
 {
-
   EVT VT = Op.getValueType();
 
   GlobalAddressSDNode *GlobalAddr = cast<GlobalAddressSDNode>(Op.getNode());
@@ -920,12 +984,12 @@ SDValue TriCoreTargetLowering::LowerGlobalAddress(SDValue Op, SelectionDAG& DAG)
 
 
 MachineBasicBlock*
-TriCoreTargetLowering::EmitInstrWithCustomInserter(MachineInstr *MI,
+TriCoreTargetLowering::EmitInstrWithCustomInserter(MachineInstr &MI,
                                                   MachineBasicBlock *BB) const {
-  unsigned Opc = MI->getOpcode();
+  unsigned Opc = MI.getOpcode();
 
   const TargetInstrInfo &TII = *BB->getParent()->getSubtarget().getInstrInfo();
-  DebugLoc dl = MI->getDebugLoc();
+  DebugLoc dl = MI.getDebugLoc();
 
   assert(Opc == TRICORE::Select8 && "Unexpected instr type to insert");
   // To "insert" a SELECT instruction, we actually have to insert the diamond
@@ -957,11 +1021,11 @@ TriCoreTargetLowering::EmitInstrWithCustomInserter(MachineInstr *MI,
   BB->addSuccessor(copy0MBB);
   BB->addSuccessor(copy1MBB);
 
-  // MI->dump();
+  // MI.dump();
 
   BuildMI(BB, dl, TII.get(TRICORE::JNZsbr))
     .addMBB(copy1MBB)
-    .addReg(MI->getOperand(4).getReg());
+    .addReg(MI.getOperand(4).getReg());
 
   //  copy0MBB:
   //   %FalseValue = ...
@@ -976,10 +1040,10 @@ TriCoreTargetLowering::EmitInstrWithCustomInserter(MachineInstr *MI,
   //  ...
   BB = copy1MBB;
   BuildMI(*BB, BB->begin(), dl, TII.get(TRICORE::PHI),
-          MI->getOperand(0).getReg())
-    .addReg(MI->getOperand(2).getReg()).addMBB(copy0MBB)
-    .addReg(MI->getOperand(1).getReg()).addMBB(thisMBB);
+          MI.getOperand(0).getReg())
+    .addReg(MI.getOperand(2).getReg()).addMBB(copy0MBB)
+    .addReg(MI.getOperand(1).getReg()).addMBB(thisMBB);
 
-  MI->eraseFromParent();   // The pseudo instruction is gone now.
+  MI.eraseFromParent();   // The pseudo instruction is gone now.
   return BB;
 }

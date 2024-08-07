@@ -124,7 +124,7 @@ MachineBasicBlock::iterator TriCoreFrameLowering::eliminateCallFramePseudoInstr(
       I->getOpcode() == TRICORE::ADJCALLSTACKDOWN) {
     return MBB.erase(I);
   }
-  // return I;
+  return I;
 }
 
 void TriCoreFrameLowering::emitEpilogue(MachineFunction & /*MF*/,

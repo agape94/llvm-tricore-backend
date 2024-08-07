@@ -93,13 +93,13 @@ public:
   bool CanLowerReturn(CallingConv::ID CallConv, MachineFunction &MF,
                       bool isVarArg,
                       const SmallVectorImpl<ISD::OutputArg> &ArgsFlags,
-                      LLVMContext &Context) const;
+                      LLVMContext &Context) const override;
 
   // LowerGlobalAddress - Emit a constant load to the global address.
   SDValue LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;
 
-  MachineBasicBlock* EmitInstrWithCustomInserter(MachineInstr *MI,
-                                                  MachineBasicBlock *BB) const;
+  MachineBasicBlock* EmitInstrWithCustomInserter(MachineInstr &MI,
+                                                  MachineBasicBlock *BB) const override;
 
   // Lower Branch
   SDValue LowerBR_CC(SDValue Op, SelectionDAG &DAG) const;
@@ -111,6 +111,9 @@ public:
 
   // Lower Shift Instruction
   SDValue LowerShifts(SDValue Op, SelectionDAG &DAG) const;
+
+  // Lower Mul High Instruction
+  SDValue LowerMulHigh(SDValue Op, SelectionDAG &DAG) const;
 
   const TriCoreRegisterInfo *TRI;
 };
