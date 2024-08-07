@@ -51,9 +51,29 @@ BitVector TriCoreRegisterInfo::getReservedRegs(const MachineFunction &MF) const 
   return Reserved;
 }
 
+const uint32_t *TriCoreRegisterInfo::getCallPreservedMask(const MachineFunction &MF,
+                                                      CallingConv::ID) const {
+  return CC_Save_RegMask;
+}
+
+bool
+TriCoreRegisterInfo::requiresRegisterScavenging(const MachineFunction &MF) const {
+  return true;
+}
+
+bool
+TriCoreRegisterInfo::trackLivenessAfterRegAlloc(const MachineFunction &MF) const {
+  return true;
+}
+
+bool TriCoreRegisterInfo::useFPForScavengingIndex(const MachineFunction &MF) const {
+  return false;
+}
+
 bool TriCoreRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
                                             int SPAdj, unsigned FIOperandNum,
                                             RegScavenger *RS) const {
+  outs() << "TriCoreRegisterInfo::eliminateFrameIndex\n";
   assert(SPAdj == 0 && "Unexpected");
   MachineInstr &MI = *II;
   const MachineFunction &MF = *MI.getParent()->getParent();
