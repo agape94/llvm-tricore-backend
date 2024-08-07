@@ -38,7 +38,7 @@ Boston, MA 02111-1307, USA.  */
 # include <asm-m68hc12/param.h>
 #endif
 
-#include "arch/param.h"
+#include "../arch/param.h"
 
 #ifndef PAGE0_ATTRIBUTE
 #if 0
