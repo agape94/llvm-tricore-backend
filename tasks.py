@@ -1,3 +1,6 @@
+import glob
+from pathlib import Path
+import shlex
 from invoke import task
 import os
 import multiprocessing
@@ -105,3 +108,45 @@ def build_target(c, experimental_targets="", path=".", upstream_targets="", debu
       shutil.move(os.path.join(ci_build_path, f"llvm-{experimental_targets.lower()}-backend/{build_dir_name}"), os.path.join(ci_build_path, build_dir_name))
 
   os.chdir(path)
+
+@task(aliases = ['t'],
+      help={"debug": "Whether to search for the clang binary in the release or debug folder"})
+def run_tests(c, debug=True):
+  """
+    Compiles all C programs found in the `tests/c-patterns` directory and keeps the outputs in the `tests/c-patterns/bin` directory.
+    This task uses pytest to run the tests, so that we will have a better overview of the results.
+  """
+  info("Running tests ...")
+  # c_patterns_path = os.path.join(os.path.dirname(__file__), "tests/c-patterns/c_patterns_compilation_test.py")
+  # c.run(f"pytest {c_patterns_path} --build_type=debug -rP -rx")
+
+  build_type = "debug" if debug else "release"
+  
+  clang_path = os.path.join(os.path.dirname(__file__), f"build_tricore_{build_type}/bin/clang")
+  c_files_path = os.path.join(os.path.dirname(__file__), "tests/c-patterns/src/")
+  s_files_path = os.path.join(os.path.dirname(__file__), "tests/c-patterns/assembly/")
+
+  if not os.path.exists(s_files_path):
+    os.mkdir(s_files_path)
+
+  clang_arguments = f"-S --target=tricore {" --debug" if debug else ""}"
+
+  # Get a list of files with the .c extension from the c_files_path
+  c_files = [os.path.basename(x) for x in glob.glob(c_files_path + "*.c")]
+  file_names = [Path(x).stem for x in c_files]
+  info(file_names)
+
+  log_file_path = os.path.join(os.path.dirname(__file__), "tests/c-patterns/logs/")
+  
+  # Iterate over the c_files list
+  for c_file in file_names:
+      # Run clang compiler on all C files
+      command = f"{clang_path} {clang_arguments} {os.path.join(c_files_path, f'{c_file}.c')} -o {os.path.join(s_files_path, f'{c_file}.s')}"
+      # print(command)
+      # result = subprocess.run([f"{clang_path} {clang_arguments} {os.path.join(c_files_path, c_file)} -o {os.path.join(s_files_path, f'{c_file}.s')}"], check=True)
+      result = subprocess.run(shlex.split(command), env=os.environ, capture_output=True)
+
+      if result.returncode != 0:
+        error(result.stderr.decode())
+
+
