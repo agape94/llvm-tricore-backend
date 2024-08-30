@@ -343,6 +343,11 @@ let Defs = [PSW], Uses = [PSW] in {
 
 } // let Defs = [PSW], Uses = [PSW]
 
+// def ADDFrrr : RRR<0x6B, 0x02, (outs FPRegs:$d), 
+// 		(ins FPRegs:$s1, FPRegs:$s2),
+// 		"add.f $d, $s1, $s2",
+// 		[(set FPRegs:$d, (fadd FPRegs:$s1, FPRegs:$s2))]>;
+
 def imml_32_h_32 : Operand<i64>, PatLeaf<(imm), [{
 
  int64_t val = N->getSExtValue();
@@ -404,6 +409,10 @@ let Defs=[PSW] in {
  def MULrc : RC<0x53, 0x001, (outs DataRegs:$d),
    (ins DataRegs:$s1, s9imm:$const9),  "mul $d, $s1, $const9",
    [(set DataRegs:$d, (mul DataRegs:$s1, immSExt9:$const9) )]>;
+
+ def MULrc2 : RC<0x53, 0x03, (outs DataExtRegs:$d),
+				(ins DataExtRegs:$s1, DataRegs:$s2),  "mul $d, $s1, $s2",
+				[(set DataExtRegs:$d, (mul DataExtRegs:$s1, (sext DataRegs:$s2)) )]>;
 }
 
 // Logical Instructions
