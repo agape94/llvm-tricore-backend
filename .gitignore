@@ -30,7 +30,7 @@
 /build*
 
 # Test output directory
-/tests/c-patterns/assembly
+/tests/c-patterns/test-output
 
 
 #==============================================================================#

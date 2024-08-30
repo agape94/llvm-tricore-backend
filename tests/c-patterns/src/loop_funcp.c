@@ -1,20 +1,20 @@
 int func1(int a) {
-  volatile b = a;
+  volatile int b = a;
   return b + 10;
 }
 
 int func2(int a) {
-  volatile b = a;
+  volatile int b = a;
   return b + 20;
 }
 
 int func3(int a) {
-  volatile b = a;
+  volatile int b = a;
   return b + 30;
 }
 
 int func4(int a) {
-  volatile b = a;
+  volatile int b = a;
   return b + 40;
 }
 

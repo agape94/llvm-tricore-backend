@@ -4,7 +4,7 @@ int func(int a) {
 }
 
 int main() {
-  int volatile a = 10;
+  int a = 10;
   a = func(a);
   return 0;
 }

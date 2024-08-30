@@ -1,16 +1,17 @@
 void clb() {
-  volatile a = 10;
+  volatile int a = 10;
   a++;
 }
 
 int func(void (*clb)(void)) {
-  volatile b = 20;
+  volatile int b = 20;
   b = 10 * b;
   clb();
+  return b;
 }
 
 int main() {
-  volatile c = 30;
+  volatile int c = 30;
   c++;
   c++;
   func(clb);

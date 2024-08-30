@@ -1,5 +1,5 @@
 int clb() {
-  volatile a = 10;
+  volatile int a = 10;
   a++;
   return a;
 }

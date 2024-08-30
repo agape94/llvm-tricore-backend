@@ -1,4 +1,5 @@
 import glob
+import math
 from pathlib import Path
 import shlex
 from invoke import task
@@ -110,8 +111,9 @@ def build_target(c, experimental_targets="", path=".", upstream_targets="", debu
   os.chdir(path)
 
 @task(aliases = ['t'],
-      help={"debug": "Whether to search for the clang binary in the release or debug folder"})
-def run_tests(c, debug=True):
+      help={"filter": "Glob pattern to filter the C files to be compiled. Example: 'test_*' will compile only the files that start with 'test_'",
+            "debug": "Whether to compile the C files in debug mode or not. Default value: True"})
+def run_c_patterns_tests(c, filter="", debug=True):
   """
     Compiles all C programs found in the `tests/c-patterns` directory and keeps the outputs in the `tests/c-patterns/bin` directory.
     This task uses pytest to run the tests, so that we will have a better overview of the results.
@@ -122,31 +124,72 @@ def run_tests(c, debug=True):
 
   build_type = "debug" if debug else "release"
   
-  clang_path = os.path.join(os.path.dirname(__file__), f"build_tricore_{build_type}/bin/clang")
+  # define relevant paths for this test
   c_files_path = os.path.join(os.path.dirname(__file__), "tests/c-patterns/src/")
-  s_files_path = os.path.join(os.path.dirname(__file__), "tests/c-patterns/assembly/")
+  test_output_path = os.path.join(os.path.dirname(__file__), "tests/c-patterns/test-output/")
+  assembly_files_path = os.path.join(test_output_path, "assembly")
+  llvmir_files_path = os.path.join(test_output_path, "llvmir")
+  log_files_path = os.path.join(test_output_path, "logs")
 
-  if not os.path.exists(s_files_path):
-    os.mkdir(s_files_path)
-
-  clang_arguments = f"-S --target=tricore {" --debug" if debug else ""}"
+  # cleanup from previous test run
+  if os.path.exists(test_output_path):
+    shutil.rmtree(test_output_path)
+  
+  # create test output folders
+  os.mkdir(test_output_path)
+  os.mkdir(assembly_files_path)
+  os.mkdir(llvmir_files_path)
+  os.mkdir(log_files_path)
 
   # Get a list of files with the .c extension from the c_files_path
-  c_files = [os.path.basename(x) for x in glob.glob(c_files_path + "*.c")]
+  c_files = [os.path.basename(x) for x in glob.glob(c_files_path + (f"{filter}*.c" if filter != "" else "*.c"))]
   file_names = [Path(x).stem for x in c_files]
-  info(file_names)
 
-  log_file_path = os.path.join(os.path.dirname(__file__), "tests/c-patterns/logs/")
+  # initialize statistical data
+  passed = 0
+  failed = 0
+  total = len(file_names)
   
-  # Iterate over the c_files list
+  clang_arguments = f"-S --target=tricore {" --debug" if debug else ""} -emit-llvm"
+  clang_path = os.path.join(os.path.dirname(__file__), f"build_tricore_{build_type}/bin/clang")
+
+  llc_arguments = f"--march=tricore {" --debug" if debug else ""}"
+  llc_path = os.path.join(os.path.dirname(__file__), f"build_tricore_{build_type}/bin/llc")
+
+  index = 1
+  # iterate over the c_files list
   for c_file in file_names:
-      # Run clang compiler on all C files
-      command = f"{clang_path} {clang_arguments} {os.path.join(c_files_path, f'{c_file}.c')} -o {os.path.join(s_files_path, f'{c_file}.s')}"
-      # print(command)
-      # result = subprocess.run([f"{clang_path} {clang_arguments} {os.path.join(c_files_path, c_file)} -o {os.path.join(s_files_path, f'{c_file}.s')}"], check=True)
-      result = subprocess.run(shlex.split(command), env=os.environ, capture_output=True)
+      print(f"{index:2}/{total}: {c_file:<20}", end="")
+      clang_command = f"{clang_path} {clang_arguments} {os.path.join(c_files_path, f'{c_file}.c')} -o {os.path.join(llvmir_files_path, f'{c_file}.ll')}"
+      llc_command = f"{llc_path} {llc_arguments} {os.path.join(llvmir_files_path, f'{c_file}.ll')} -o {os.path.join(assembly_files_path, f'{c_file}.s')}"
 
-      if result.returncode != 0:
-        error(result.stderr.decode())
+      result_clang = subprocess.run(shlex.split(clang_command), env=os.environ, capture_output=True)
+      result_llc = subprocess.run(shlex.split(llc_command), env=os.environ, capture_output=True)
 
+      if result_clang.returncode != 0 or result_llc.returncode != 0:
+        with open(os.path.join(log_files_path, f"{c_file}.log"), "w") as f:
+          f.write(">>>>>>>>>>>>> CLANG ERROR OUTPUT\n")
+          f.write(result_clang.stderr.decode())
+          f.write("\n>>>>>>>>>>>>> LLC ERROR OUTPUT\n")
+          f.write(result_llc.stderr.decode())
+        failed += 1
+        print(" Failed")
+      else:
+        passed += 1
+        print(" Passed")
+      
+      index += 1
+
+
+  info(f"Passed: {passed}/{total} - {round(passed/total*100)}%")
+  info(f"Failed: {failed}/{total} - {round(failed/total*100)}%")
+
+
+@task(aliases = ['c'],
+      help={})
+def cleanup_test_output(c):
+  """
+    Cleans up the test output folder of the LLVM project.
+  """
+  shutil.rmtree(os.path.join(os.path.dirname(__file__), "tests/c-patterns/test-output/"))
 

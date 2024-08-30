@@ -12,6 +12,7 @@ int func(void (*clb)(void)) {
   volatile int b = 20;
   b = 10 * b;
   clb();
+  return b;
 }
 
 int main() {
