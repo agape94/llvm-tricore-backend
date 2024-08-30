@@ -29,6 +29,10 @@
 # Nested build directory
 /build*
 
+# Test output directory
+/tests/c-patterns/assembly
+
+
 #==============================================================================#
 # Explicit files to ignore (only matches one).
 #==============================================================================#
