@@ -111,16 +111,14 @@ def build_target(c, experimental_targets="", path=".", upstream_targets="", debu
 
 @task(aliases = ['t'],
       help={"filter": "Glob pattern to filter the C files to be compiled. Example: 'test_*' will compile only the files that start with 'test_'",
-            "debug": "Whether to compile the C files in debug mode or not. Default value: True"})
-def run_c_patterns_tests(c, filter="", debug=True):
+            "debug": "Whether to compile the C files in debug mode or not. Default value: True",
+            "clang-only": "Whether to compile the C files using clang only or not. Default value: False"})
+def run_c_patterns_tests(c, filter="", debug=False, clang_only=False):
   """
     Compiles all C programs found in the `tests/c-patterns` directory and keeps the outputs in the `tests/c-patterns/bin` directory.
     This task uses pytest to run the tests, so that we will have a better overview of the results.
   """
   info("Running tests ...")
-  # c_patterns_path = os.path.join(os.path.dirname(__file__), "tests/c-patterns/c_patterns_compilation_test.py")
-  # c.run(f"pytest {c_patterns_path} --build_type=debug -rP -rx")
-
   build_type = "debug" if debug else "release"
   
   # define relevant paths for this test
@@ -149,28 +147,38 @@ def run_c_patterns_tests(c, filter="", debug=True):
   failed = 0
   total = len(file_names)
   
-  clang_arguments = f"-S --target=tricore {" --debug" if debug else ""} -emit-llvm"
+  if clang_only:
+    clang_arguments = f"-S --target=tricore {" --debug" if debug else ""}"
+  else: 
+    clang_arguments = f"-S --target=tricore {" --debug" if debug else ""} -emit-llvm"
+
+  llc_arguments = f"--march=tricore {" --debug" if debug else ""} -print-after-all"
   clang_path = os.path.join(os.path.dirname(__file__), f"build_tricore_{build_type}/bin/clang")
 
-  llc_arguments = f"--march=tricore {" --debug" if debug else ""}"
   llc_path = os.path.join(os.path.dirname(__file__), f"build_tricore_{build_type}/bin/llc")
 
   index = 1
   # iterate over the c_files list
   for c_file in file_names:
-      print(f"{index:2}/{total}: {c_file:<20}", end="")
-      clang_command = f"{clang_path} {clang_arguments} {os.path.join(c_files_path, f'{c_file}.c')} -o {os.path.join(llvmir_files_path, f'{c_file}.ll')}"
+      print(f"{index:2}/{total}: {c_file}.c {'.' * (40 - len(c_file) - 1)}", end="")
+      if clang_only:
+        clang_command = f"{clang_path} {clang_arguments} {os.path.join(c_files_path, f'{c_file}.c')} -o {os.path.join(assembly_files_path, f'{c_file}.s')}"
+      else:
+        clang_command = f"{clang_path} {clang_arguments} {os.path.join(c_files_path, f'{c_file}.c')} -o {os.path.join(llvmir_files_path, f'{c_file}.ll')}"
+
       llc_command = f"{llc_path} {llc_arguments} {os.path.join(llvmir_files_path, f'{c_file}.ll')} -o {os.path.join(assembly_files_path, f'{c_file}.s')}"
 
       result_clang = subprocess.run(shlex.split(clang_command), env=os.environ, capture_output=True)
-      result_llc = subprocess.run(shlex.split(llc_command), env=os.environ, capture_output=True)
+      if not clang_only:
+        result_llc = subprocess.run(shlex.split(llc_command), env=os.environ, capture_output=True)
 
-      if result_clang.returncode != 0 or result_llc.returncode != 0:
+      if result_clang.returncode != 0 or not clang_only and result_llc.returncode != 0:
         with open(os.path.join(log_files_path, f"{c_file}.log"), "w") as f:
           f.write(">>>>>>>>>>>>> CLANG ERROR OUTPUT\n")
           f.write(result_clang.stderr.decode())
-          f.write("\n>>>>>>>>>>>>> LLC ERROR OUTPUT\n")
-          f.write(result_llc.stderr.decode())
+          if not clang_only:
+            f.write("\n>>>>>>>>>>>>> LLC ERROR OUTPUT\n")
+            f.write(result_llc.stderr.decode())
         failed += 1
         print(" Failed")
       else:
@@ -191,4 +199,3 @@ def cleanup_test_output(c):
     Cleans up the test output folder of the LLVM project.
   """
   shutil.rmtree(os.path.join(os.path.dirname(__file__), "tests/c-patterns/test-output/"))
-
