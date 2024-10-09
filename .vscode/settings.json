@@ -1,0 +1,70 @@
+{
+    "files.associations": {
+        "*.inc": "cpp",
+        "array": "cpp",
+        "deque": "cpp",
+        "forward_list": "cpp",
+        "list": "cpp",
+        "string": "cpp",
+        "unordered_map": "cpp",
+        "unordered_set": "cpp",
+        "vector": "cpp",
+        "string_view": "cpp",
+        "format": "cpp",
+        "initializer_list": "cpp",
+        "span": "cpp",
+        "regex": "cpp",
+        "ios": "cpp",
+        "*.tcc": "cpp",
+        "__hash_table": "cpp",
+        "__split_buffer": "cpp",
+        "__tree": "cpp",
+        "bitset": "cpp",
+        "simd": "cpp",
+        "hash_map": "cpp",
+        "hash_set": "cpp",
+        "map": "cpp",
+        "queue": "cpp",
+        "set": "cpp",
+        "stack": "cpp",
+        "valarray": "cpp",
+        "algorithm": "cpp",
+        "ranges": "cpp",
+        "stacktrace": "cpp"
+    },
+    "cmake.sourceDirectory": "${workspaceFolder}/llvm",
+    //--------------------------------------------------------------------------
+    //              C++
+    //--------------------------------------------------------------------------
+    "C_Cpp.clang_format_style": "LLVM",
+    "C_Cpp.default.cppStandard": "c++14",
+    "C_Cpp.default.cStandard": "c11",
+    //--------------------------------------------------------------------------
+    //              CMake
+    //--------------------------------------------------------------------------
+    "cmake.generator": "Ninja",
+    // Adjust this path to the expansion of $MYHOME/llvm-project/build.
+    "cmake.buildDirectory": "${workspaceFolder}/build-vscode",
+    "cmake.configureSettings": {
+        "LLVM_ENABLE_PROJECTS": ["clang","lld"],
+        "CMAKE_EXPORT_COMPILE_COMMANDS": 1,
+        "BUILD_SHARED_LIBS": "Off",
+        "LLVM_BUILD_LLVM_DYLIB": "On",
+        "LLVM_LINK_LLVM_DYLIB": "On",
+        "CLANG_LINK_CLANG_DYLIB": "On",
+        "LLVM_TARGETS_TO_BUILD": "MSP430",
+        "LLVM_EXPERIMENTAL_TARGETS_TO_BUILD": "TriCore",
+        "LLVM_ENABLE_LDD": "On",
+        "LLVM_ENABLE_IDE": "On",
+        "LLVM_ENABLE_ASSERTIONS": "On",
+        "LLVM_BUILD_EXAMPLES": "On",
+        "LLVM_LIT_ARGS": "-v --xunit-xml-output test-results.xml",
+        "PYTHON_EXECUTABLE": "/usr/bin/python3",
+    },
+    //--------------------------------------------------------------------------
+    //              Editor
+    //--------------------------------------------------------------------------
+    "editor.mouseWheelZoom": true,
+    "editor.rulers": [80],
+    "editor.formatOnPaste": false,
+}
