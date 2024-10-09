@@ -52,7 +52,7 @@ def build_target(c, experimental_targets="", path=".", upstream_targets="", debu
   check_arguments(experimental_targets, path, debug, release)
 
   build_type = "Debug" if debug else "Release"
-  build_dir_name = f'build_{experimental_targets.lower()}_{build_type.lower()}'
+  build_dir_name = f'build_tricore_{build_type.lower()}'
   build_dir = os.path.join(path, build_dir_name)
   
   if os.getenv('CI') is not None:
