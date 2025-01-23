@@ -16,6 +16,11 @@ def info (msg):
 def error (msg):
   print(f"ERROR: {msg}")
 
+class MockCompletedProcess:
+    def __init__(self, returncode=0):
+        self.returncode = returncode
+        self.stderr = b''
+
 # ==================================================================================================================
 
 def check_arguments(target_name, path, debug, release):
@@ -112,8 +117,12 @@ def build_target(c, experimental_targets="", path=".", upstream_targets="", debu
 @task(aliases = ['t'],
       help={"filter": "Glob pattern to filter the C files to be compiled. Example: 'test_*' will compile only the files that start with 'test_'",
             "debug": "Whether to compile the C files in debug mode or not. Default value: True",
-            "clang-only": "Whether to compile the C files using clang only or not. Default value: False"})
-def run_c_patterns_tests(c, filter="", debug=False, clang_only=False):
+            "c_to_llvmir": "Whether to compile the C files to LLVM IR or not. Default value: False",
+            "c_to_assembly": "Whether to compile the C files to assembly or not. Default value: False",
+            "llvmir_to_assembly": "Whether to compile the LLVM IR files to assembly or not. Default value: False",
+            "optimization_level": "Optimization level for the compilation. Default value: 1"
+      })
+def run_c_patterns_tests(c, filter="", debug=False, c_to_assembly=False, c_to_llvmir=True, llvmir_to_assembly=True, optimization_level=1):
   """
     Compiles all C programs found in the `tests/c-patterns` directory and keeps the outputs in the `tests/c-patterns/bin` directory.
     This task uses pytest to run the tests, so that we will have a better overview of the results.
@@ -146,37 +155,50 @@ def run_c_patterns_tests(c, filter="", debug=False, clang_only=False):
   passed = 0
   failed = 0
   total = len(file_names)
+
+  run_clang = False
+  run_llc = False
   
-  if clang_only:
-    clang_arguments = f"-S --target=tricore {" --debug" if debug else ""}"
-  else: 
-    clang_arguments = f"-S --target=tricore {" --debug" if debug else ""} -emit-llvm"
+  if c_to_assembly:
+    clang_arguments = f"-S --target=tricore {" --debug" if debug else ""} {f" -O{optimization_level}" if optimization_level > 0 else ""}"
+    run_clang = True
+  elif c_to_llvmir: 
+    clang_arguments = f"-S --target=tricore {" --debug" if debug else ""} -emit-llvm {f" -O{optimization_level}" if optimization_level > 0 else ""}"
+    run_clang = True
 
-  llc_arguments = f"--march=tricore {" --debug" if debug else ""} -print-after-all"
+  if llvmir_to_assembly:
+    llc_arguments = f"--march=tricore {" --debug" if debug else ""} -print-after-all {f" -O{optimization_level}" if optimization_level > 0 else ""}"
+    run_llc = True
+  
   clang_path = os.path.join(os.path.dirname(__file__), f"build_tricore_{build_type}/bin/clang")
-
   llc_path = os.path.join(os.path.dirname(__file__), f"build_tricore_{build_type}/bin/llc")
 
   index = 1
   # iterate over the c_files list
   for c_file in file_names:
       print(f"{index:2}/{total}: {c_file}.c {'.' * (40 - len(c_file) - 1)}", end="")
-      if clang_only:
+      if c_to_assembly:
         clang_command = f"{clang_path} {clang_arguments} {os.path.join(c_files_path, f'{c_file}.c')} -o {os.path.join(assembly_files_path, f'{c_file}.s')}"
-      else:
+      elif c_to_llvmir:
         clang_command = f"{clang_path} {clang_arguments} {os.path.join(c_files_path, f'{c_file}.c')} -o {os.path.join(llvmir_files_path, f'{c_file}.ll')}"
+      
+      if llvmir_to_assembly:
+        llc_command = f"{llc_path} {llc_arguments} {os.path.join(llvmir_files_path, f'{c_file}.ll')} -o {os.path.join(assembly_files_path, f'{c_file}.s')}"
 
-      llc_command = f"{llc_path} {llc_arguments} {os.path.join(llvmir_files_path, f'{c_file}.ll')} -o {os.path.join(assembly_files_path, f'{c_file}.s')}"
-
-      result_clang = subprocess.run(shlex.split(clang_command), env=os.environ, capture_output=True)
-      if not clang_only:
+      result_clang = MockCompletedProcess()
+      result_llc = MockCompletedProcess()
+      
+      if run_clang:
+        result_clang = subprocess.run(shlex.split(clang_command), env=os.environ, capture_output=True)
+      if run_llc:
         result_llc = subprocess.run(shlex.split(llc_command), env=os.environ, capture_output=True)
 
-      if result_clang.returncode != 0 or not clang_only and result_llc.returncode != 0:
+      if result_clang.returncode != 0 or result_llc.returncode != 0:
         with open(os.path.join(log_files_path, f"{c_file}.log"), "w") as f:
-          f.write(">>>>>>>>>>>>> CLANG ERROR OUTPUT\n")
-          f.write(result_clang.stderr.decode())
-          if not clang_only:
+          if run_clang:
+            f.write(">>>>>>>>>>>>> CLANG ERROR OUTPUT\n")
+            f.write(result_clang.stderr.decode())
+          if run_llc:
             f.write("\n>>>>>>>>>>>>> LLC ERROR OUTPUT\n")
             f.write(result_llc.stderr.decode())
         failed += 1
