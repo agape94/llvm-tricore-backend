@@ -1,5 +1,6 @@
 import glob
 from pathlib import Path
+import re
 import shlex
 from invoke import task
 import os
@@ -120,14 +121,15 @@ def build_target(c, experimental_targets="", path=".", upstream_targets="", debu
             "c_to_llvmir": "Whether to compile the C files to LLVM IR or not. Default value: False",
             "c_to_assembly": "Whether to compile the C files to assembly or not. Default value: False",
             "llvmir_to_assembly": "Whether to compile the LLVM IR files to assembly or not. Default value: False",
-            "optimization_level": "Optimization level for the compilation. Default value: 1"
+            "optimization_level": "Optimization level for the compilation. Default value: 1",
+            "list_tests": "Whether to list the tests or not. This parameter will stop the test run after printing the tests. Default value: False"
       })
-def run_c_patterns_tests(c, filter="", debug=False, c_to_assembly=False, c_to_llvmir=True, llvmir_to_assembly=True, optimization_level=1):
+def run_c_patterns_tests(c, filter="", debug=False, c_to_assembly=False, c_to_llvmir=True, llvmir_to_assembly=True, optimization_level=1, list_tests=False):
   """
     Compiles all C programs found in the `tests/c-patterns` directory and keeps the outputs in the `tests/c-patterns/bin` directory.
     This task uses pytest to run the tests, so that we will have a better overview of the results.
   """
-  info("Running tests ...")
+  info("Running tests ...") if not list_tests else info("Listing tests ...")
   build_type = "debug" if debug else "release"
   
   # define relevant paths for this test
@@ -137,18 +139,25 @@ def run_c_patterns_tests(c, filter="", debug=False, c_to_assembly=False, c_to_ll
   llvmir_files_path = os.path.join(test_output_path, "llvmir")
   log_files_path = os.path.join(test_output_path, "logs")
 
-  # cleanup from previous test run
-  if os.path.exists(test_output_path):
-    shutil.rmtree(test_output_path)
-  
-  # create test output folders
-  os.mkdir(test_output_path)
-  os.mkdir(assembly_files_path)
-  os.mkdir(llvmir_files_path)
-  os.mkdir(log_files_path)
+  if not list_tests:
+    # cleanup from previous test run
+    if os.path.exists(test_output_path):
+      shutil.rmtree(test_output_path)
+    
+    # create test output folders
+    os.mkdir(test_output_path)
+    os.mkdir(assembly_files_path)
+    os.mkdir(llvmir_files_path)
+    os.mkdir(log_files_path)
 
   # Get a list of files with the .c extension from the c_files_path
-  c_files = [os.path.basename(x) for x in glob.glob(c_files_path + (f"{filter}*.c" if filter != "" else "*.c"))]
+  # Check if the filter already includes the .s extension
+  if filter.endswith(".c"):
+      file_pattern = os.path.join(c_files_path, filter)
+  else:
+      file_pattern = os.path.join(c_files_path, f"{filter}*.c" if filter != "" else "*.c")
+  
+  c_files = [os.path.basename(x) for x in glob.glob(file_pattern)]
   file_names = [Path(x).stem for x in c_files]
 
   # initialize statistical data
@@ -160,14 +169,14 @@ def run_c_patterns_tests(c, filter="", debug=False, c_to_assembly=False, c_to_ll
   run_llc = False
   
   if c_to_assembly:
-    clang_arguments = f"-S --target=tricore {" --debug" if debug else ""} {f" -O{optimization_level}" if optimization_level > 0 else ""}"
+    clang_arguments = f"-S --target=tricore {' --debug' if debug else ''} {f' -O{optimization_level}' if optimization_level > 0 else ''}"
     run_clang = True
   elif c_to_llvmir: 
-    clang_arguments = f"-S --target=tricore {" --debug" if debug else ""} -emit-llvm {f" -O{optimization_level}" if optimization_level > 0 else ""}"
+    clang_arguments = f"-S --target=tricore {' --debug' if debug else ''} -emit-llvm {f' -O{optimization_level}' if optimization_level > 0 else ''}"
     run_clang = True
 
   if llvmir_to_assembly:
-    llc_arguments = f"--march=tricore {" --debug" if debug else ""} -print-after-all {f" -O{optimization_level}" if optimization_level > 0 else ""}"
+    llc_arguments = f"--march=tricore {' --debug' if debug else ''} -print-after-all {f' -O{optimization_level}' if optimization_level > 0 else ''}"
     run_llc = True
   
   clang_path = os.path.join(os.path.dirname(__file__), f"build_tricore_{build_type}/bin/clang")
@@ -176,6 +185,11 @@ def run_c_patterns_tests(c, filter="", debug=False, c_to_assembly=False, c_to_ll
   index = 1
   # iterate over the c_files list
   for c_file in file_names:
+      if list_tests:
+        print(f"- {index:2}/{total}: {c_file}.c")
+        index += 1
+        continue
+
       print(f"{index:2}/{total}: {c_file}.c {'.' * (40 - len(c_file) - 1)}", end="")
       if c_to_assembly:
         clang_command = f"{clang_path} {clang_arguments} {os.path.join(c_files_path, f'{c_file}.c')} -o {os.path.join(assembly_files_path, f'{c_file}.s')}"
@@ -209,9 +223,9 @@ def run_c_patterns_tests(c, filter="", debug=False, c_to_assembly=False, c_to_ll
       
       index += 1
 
-
-  info(f"Passed: {passed}/{total} - {round(passed/total*100)}%")
-  info(f"Failed: {failed}/{total} - {round(failed/total*100)}%")
+  if not list_tests:
+    info(f"Passed: {passed}/{total} - {round(passed/total*100)}%")
+    info(f"Failed: {failed}/{total} - {round(failed/total*100)}%")
 
 
 @task(aliases = ['c'],
@@ -221,3 +235,91 @@ def cleanup_test_output(c):
     Cleans up the test output folder of the LLVM project.
   """
   shutil.rmtree(os.path.join(os.path.dirname(__file__), "tests/c-patterns/test-output/"))
+
+@task(aliases = ['ct'],
+      help={
+        "filter": "Glob pattern to filter the assembly files to be converted to the Tasking compiler format. Example: 'test_' will convert only the files that start with 'test_'",
+        "list_files": "Whether to list the files or not. This parameter will stop the conversion after printing the files. Default value: False"
+      })
+def convert_tests_to_tasking_format(c, filter="", list_files=False):
+  """
+    Converts the tests in the `tests/c-patterns` directory to the Tasking format.
+  """
+  # define relevant paths for this test
+  test_output_path = os.path.join(os.path.dirname(__file__), "tests/c-patterns/test-output/")
+  assembly_files_path = os.path.join(test_output_path, "assembly")
+  converted_assembly_files_path = os.path.join(test_output_path, "tasking")
+
+  # cleanup from previous test run
+  if os.path.exists(converted_assembly_files_path):
+    shutil.rmtree(converted_assembly_files_path)
+  
+  # create test output folders
+  os.mkdir(converted_assembly_files_path)
+
+  # Check if the filter already includes the .s extension
+  if filter.endswith(".s"):
+      file_pattern = os.path.join(assembly_files_path, filter)
+  else:
+      file_pattern = os.path.join(assembly_files_path, f"{filter}*.s" if filter != "" else "*.s")
+
+  print(file_pattern)
+
+
+  # Get a list of files with the .s extension from the assembly_files_path
+  assembly_files = [os.path.basename(x) for x in glob.glob(file_pattern)]
+  assembly_files = [Path(x).stem for x in assembly_files]
+
+  index = 1
+  total = len(assembly_files)
+  print("Converting files to Tasking format ...") if not list_files else print("Listing files ...")
+  for assembly_file in assembly_files:
+    if list_files:
+      print(f"- {index:2}/{total}: {assembly_file}.s")
+      index += 1
+      continue
+    
+    print(f"{index:2}/{total}: {assembly_file}.s {'.' * (40 - len(assembly_file) - 1)}", end="")
+    
+    with open(os.path.join(assembly_files_path, f"{assembly_file}.s"), "r") as original_file:
+      lines = original_file.readlines()
+      with open(os.path.join(converted_assembly_files_path, f"{assembly_file}.src"), "w") as tasking_file:
+        header = \
+          '.sdecl ".text", CODE                ; Declare a section with name, type and attributes\n' + \
+          '.sect ".text"                       ; Activate a declared section\n' + \
+          '.align 4                            ; Align the location counter on 4 bytes\n\n'
+        tasking_file.write(header)
+
+        for line in lines:
+          if  ".text" in line or ".type" in line or ".size" in line or ".ident" in line or ".section" in line or ".globl" in line or ".file" in line or ".Lfunc_end" in line or re.search(".L.*\$local:", line):
+            continue
+          elif "main:" in line:
+            main_function_name = f"{assembly_file.split('.')[0]}_main"
+            tasking_file.write(f"\t.global {main_function_name}\n\n")
+            tasking_file.write(f"{main_function_name}:\n\n")
+            continue
+          # Remove everything after and including '#'
+          line = re.sub(r'#.*', '', line)
+
+          # Replace all the registers with the Tasking compiler format
+          line = line.replace("%a", "a")
+          line = line.replace("%d", "d")
+          
+          # Remove whitespaces between the address register and the offset
+          line = line.replace("] ", "]")
+
+          # Replace all the registers with the Tasking compiler format
+          line = re.sub(r', (\d+)', r', #\1', line)
+
+          # Remove the trailing whitespaces
+          line = line.rstrip() + "\n"
+
+          if line == "\n":
+            continue
+          
+          # Finally, write the line to the file
+          tasking_file.write(line)
+    
+    print(" Done")
+
+    index += 1
