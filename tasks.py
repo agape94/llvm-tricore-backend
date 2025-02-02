@@ -291,7 +291,7 @@ def convert_tests_to_tasking_format(c, filter="", list_files=False):
         tasking_file.write(header)
 
         for line in lines:
-          if  ".text" in line or ".type" in line or ".size" in line or ".ident" in line or ".section" in line or ".globl" in line or ".file" in line or ".Lfunc_end" in line or re.search(".L.*\$local:", line):
+          if  ".text" in line or ".type" in line or ".size" in line or ".ident" in line or ".section" in line or ".globl" in line or ".file" in line or ".Lfunc_end" in line or re.search(".L.*local:", line):
             continue
           elif "main:" in line:
             main_function_name = f"{assembly_file.split('.')[0]}_main"
