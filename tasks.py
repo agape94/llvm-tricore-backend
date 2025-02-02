@@ -124,7 +124,7 @@ def build_target(c, experimental_targets="", path=".", upstream_targets="", debu
             "optimization_level": "Optimization level for the compilation. Default value: 1",
             "list_tests": "Whether to list the tests or not. This parameter will stop the test run after printing the tests. Default value: False"
       })
-def run_c_patterns_tests(c, filter="", debug=False, c_to_assembly=False, c_to_llvmir=True, llvmir_to_assembly=True, optimization_level=1, list_tests=False):
+def run_c_patterns_tests(c, filter="", debug=False, c_to_assembly=False, c_to_llvmir=True, llvmir_to_assembly=True, optimization_level=0, list_tests=False):
   """
     Compiles all C programs found in the `tests/c-patterns` directory and keeps the outputs in the `tests/c-patterns/bin` directory.
     This task uses pytest to run the tests, so that we will have a better overview of the results.
