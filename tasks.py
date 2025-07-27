@@ -116,7 +116,8 @@ def build_target(c, experimental_targets="", path=".", upstream_targets="", debu
   os.chdir(path)
 
 @task(aliases = ['t'],
-      help={"filter": "Glob pattern to filter the C files to be compiled. Example: 'test_*' will compile only the files that start with 'test_'",
+      help={"vscode_build": "Whether to use the binaries from the vscode build folder or not. Default value: False",
+            "filter": "Glob pattern to filter the C files to be compiled. Example: 'test_*' will compile only the files that start with 'test_'",
             "debug": "Whether to compile the C files in debug mode or not. Default value: True",
             "c_to_llvmir": "Whether to compile the C files to LLVM IR or not. Default value: False",
             "c_to_assembly": "Whether to compile the C files to assembly or not. Default value: False",
@@ -124,7 +125,7 @@ def build_target(c, experimental_targets="", path=".", upstream_targets="", debu
             "optimization_level": "Optimization level for the compilation. Default value: 1",
             "list_tests": "Whether to list the tests or not. This parameter will stop the test run after printing the tests. Default value: False"
       })
-def run_c_patterns_tests(c, filter="", debug=False, c_to_assembly=False, c_to_llvmir=True, llvmir_to_assembly=True, optimization_level=0, list_tests=False):
+def run_c_patterns_tests(c, vscode_build=False, filter="", debug=False, c_to_assembly=False, c_to_llvmir=True, llvmir_to_assembly=True, optimization_level=0, list_tests=False):
   """
     Compiles all C programs found in the `tests/c-patterns` directory and keeps the outputs in the `tests/c-patterns/bin` directory.
     This task uses pytest to run the tests, so that we will have a better overview of the results.
@@ -178,9 +179,11 @@ def run_c_patterns_tests(c, filter="", debug=False, c_to_assembly=False, c_to_ll
   if llvmir_to_assembly:
     llc_arguments = f"--march=tricore {' --debug' if debug else ''} -print-after-all {f' -O{optimization_level}' if optimization_level > 0 else ''}"
     run_llc = True
-  
-  clang_path = os.path.join(os.path.dirname(__file__), f"build_tricore_{build_type}/bin/clang")
-  llc_path = os.path.join(os.path.dirname(__file__), f"build_tricore_{build_type}/bin/llc")
+
+  build_dir = os.path.join(os.path.dirname(__file__), f"build_tricore_{build_type}") if not vscode_build else "build-vscode"
+
+  clang_path = os.path.join(os.path.dirname(__file__), f"{build_dir}/bin/clang")
+  llc_path = os.path.join(os.path.dirname(__file__), f"{build_dir}/bin/llc")
 
   index = 1
   # iterate over the c_files list
